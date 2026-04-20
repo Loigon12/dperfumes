@@ -4,7 +4,7 @@ const cartSidebar = document.getElementById("cart-sidebar");
 const cartOverlay = document.getElementById("cart-overlay");
 const cartItemsContainer = document.getElementById("cart-items");
 const cartTotalLabel = document.getElementById("cart-total");
-
+const searchInput = document.getElementById('search-input');
 // --- LÓGICA DEL CARRITO ---
 
 function updateCartUI() {
