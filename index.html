@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dperfumes | Perfumería Original</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Favicon -->
+  <link rel="icon" href="images/logo.png" sizes="any" />
+  <link rel="icon" href="images/logo.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="images/logo.png" sizes="16x16" type="image/png" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        body { font-family: "Inter", sans-serif; }
+        .serif { font-family: "Playfair Display", serif; }
+        
+        /* Suavizar la transición del carrito */
+        #cart-sidebar {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-900 overflow-x-hidden">
+
+    <div class="bg-black text-white text-center py-2 text-xs tracking-widest uppercase">
+        Envíos gratis por compras superiores a $250.000 y 10% off en primera compra
+    </div>
+
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+             <h1 class="serif text-2xl font-bold tracking-tighter"><a href="index.html">dp</a></h1>
+            <div class="flex items-center space-x-6 text-sm uppercase tracking-wider font-medium">
+                <a href="index.html" class="hidden md:block text-stone-500 transition">Inicio</a>
+                <a href="Catalogo.html" class="hidden md:block hover:text-stone-500 transition">Catálogo</a>
+                <a href="nosotros.html" class="hidden md:block hover:text-stone-500 transition">Sobre Nosotros</a>
+                <div class="flex items-center space-x-4">
+                    
+                    <button onclick="toggleCart()" class="relative group">
+                        <i class="fa-solid fa-bag-shopping text-xl transition-transform group-hover:scale-110"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-black text-white text-[10px] h-4 w-4 rounded-full flex items-center justify-center transition-all duration-300">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="cart-overlay" onclick="toggleCart()" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300"></div>
+
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-white z-[70] shadow-2xl translate-x-full flex flex-col">
+        <div class="p-6 border-b border-stone-100 flex justify-between items-center">
+            <h3 class="serif text-2xl italic">Tu Pedido</h3>
+            <button onclick="toggleCart()" class="text-stone-400 hover:text-black transition text-2xl">&times;</button>
+        </div>
+
+        <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+            </div>
+
+        <div class="p-6 border-t border-stone-100 bg-stone-50">
+            <div class="flex justify-between items-center mb-6">
+                <span class="uppercase tracking-widest text-xs font-semibold">Total estimado</span>
+                <span id="cart-total" class="serif text-xl font-bold">$0</span>
+            </div>
+            <button onclick="confirmarPedido()" class="w-full bg-black text-white py-4 text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition shadow-lg flex items-center justify-center gap-3">
+                <i class="fa-brands fa-whatsapp text-lg"></i>
+                Confirmar por WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <section class="relative h-[85vh] flex items-center justify-center bg-stone-900 overflow-hidden">
+        <img src="images/pexels-ryuji-sam-289674150-34642421.jpg" alt="Perfume" class="absolute inset-0 w-full h-full object-cover opacity-60">
+        <div class="relative z-20 text-center text-white px-4">
+            <span class="text-xs uppercase tracking-[0.3em] font-light mb-4 block">Descubre tu firma personal</span>
+            <h2 class="serif text-5xl md:text-7xl mb-8 leading-tight">Tu esencia,<br>nuestro arte</h2>
+            <a href="#productos" class="inline-block border border-white px-8 py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition duration-500">Explorar Colección</a>
+        </div>
+    </section>
+
+    <section class="bg-white py-10 border-b border-stone-100">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div class="flex flex-col items-center gap-3">
+                <i class="fa-solid fa-medal text-3xl text-stone-800"></i>
+                <div>
+                    <h4 class="text-xs uppercase tracking-widest font-bold mb-1">100% Originales</h4>
+                    <p class="text-[10px] text-stone-500 uppercase tracking-wider">Garantía de autenticidad</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-3">
+                <i class="fa-solid fa-truck-fast text-3xl text-stone-800"></i>
+                <div>
+                    <h4 class="text-xs uppercase tracking-widest font-bold mb-1">Envíos Seguros</h4>
+                    <p class="text-[10px] text-stone-500 uppercase tracking-wider">A toda Colombia</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-3">
+                <i class="fa-solid fa-shield-halved text-3xl text-stone-800"></i>
+                <div>
+                    <h4 class="text-xs uppercase tracking-widest font-bold mb-1">Compra Segura</h4>
+                    <p class="text-[10px] text-stone-500 uppercase tracking-wider">Pagos protegidos</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <div class="text-center mb-12">
+            <span class="uppercase tracking-widest text-[10px] text-stone-500 block mb-2">Para cada estilo</span>
+            <h2 class="serif text-3xl italic text-stone-800">Nuestras Categorías</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="catalogo.html?cat=hombre" class="group relative h-[400px] overflow-hidden bg-stone-900 flex items-center justify-center">
+                <img src="images/CategoriaHombreYMujer/pexels-franco-monsalvo-252430633-19406030.jpg" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-700">
+                <h3 class="relative text-white serif text-3xl z-10 group-hover:tracking-wider transition-all duration-500">Hombre</h3>
+            </a>
+            <a href="catalogo.html?cat=mujer" class="group relative h-[400px] overflow-hidden bg-stone-900 flex items-center justify-center">
+                <img src="images/CategoriaHombreYMujer/pexels-mart-production-8450543.jpg" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-700">
+                <h3 class="relative text-white serif text-3xl z-10 group-hover:tracking-wider transition-all duration-500">Mujer</h3>
+            </a>
+            <a href="catalogo.html?cat=arabe" class="group relative h-[400px] overflow-hidden bg-stone-900 flex items-center justify-center">
+                <img src="images/CategoriaHombreYMujer/pexels-elkady-10688062.jpg" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-700">
+                <h3 class="relative text-white serif text-3xl z-10 group-hover:tracking-wider transition-all duration-500 text-center px-4">Perfumería<br>Árabe</h3>
+            </a>
+        </div>
+    </section>
+<section class="bg-stone-100 py-16">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h3 class="text-[10px] uppercase tracking-[0.3em] text-stone-400 mb-8 font-bold">Nuestras Marcas</h3>
+            <div class="flex flex-wrap justify-center items-center gap-10 md:gap-20 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+                <span class="serif text-xl md:text-2xl font-bold tracking-widest cursor-pointer">LATTAFA</span>
+                <span class="serif text-xl md:text-2xl font-bold tracking-widest cursor-pointer">ARMAF</span>
+                <span class="serif text-xl md:text-2xl font-bold tracking-widest cursor-pointer">RASASI</span>
+                <span class="serif text-xl md:text-2xl font-bold tracking-widest cursor-pointer">AFNAN</span>
+                <span class="serif text-xl md:text-2xl font-bold tracking-widest cursor-pointer">AL HARAMAIN</span>
+                <span class="serif text-xl md:text-2xl font-bold tracking-widest cursor-pointer">DUMONT</span>
+            </div>
+        </div>
+    </section>
+    <section id="productos" class="max-w-7xl mx-auto px-6 pb-20">
+        <div class="flex justify-between items-end mb-12">
+            <div>
+            </br>
+                <span class="uppercase tracking-widest text-[10px] text-stone-500 block mb-2">Destacados</span>
+                <h2 class="serif text-3xl italic text-stone-800">Productos</h2>
+            </div>
+            <a href="catalogo.html" class="text-xs uppercase tracking-widest border-b border-stone-300 pb-1 hover:border-black transition">Ver todo</a>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            <div class="group">
+                <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-4">
+                    <img src="images/Hawas-for-Him-Rasasi-convertido-de-png.webp" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                    <button onclick="addToCart('Hawas For Him - Rasasi', 340000)" class="absolute bottom-0 left-0 w-full bg-black text-white py-4 text-[10px] uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">Añadir al carrito</button>
+                </div>
+                <p class="text-[10px] text-stone-400 uppercase tracking-widest mb-1">Rasasi</p>
+                <h4 class="text-sm font-medium uppercase tracking-tight mb-1 italic">Hawas For Him</h4>
+                <p class="text-stone-900 text-sm font-semibold">$340.000</p>
+            </div>
+
+            <div class="group">
+                <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-4">
+                    <img src="images/9pm.webp" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                    <button onclick="addToCart('9 PM - Afnan', 250000)" class="absolute bottom-0 left-0 w-full bg-black text-white py-4 text-[10px] uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">Añadir al carrito</button>
+                </div>
+                <p class="text-[10px] text-stone-400 uppercase tracking-widest mb-1">Afnan</p>
+                <h4 class="text-sm font-medium uppercase tracking-tight mb-1 italic">9 PM</h4>
+                <p class="text-stone-900 text-sm font-semibold">$250.000</p>
+            </div>
+
+            <div class="group">
+                <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-4">
+                    <img src="images/eclaire-lattafa-mujer-100-ml-edp.webp" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                    <button onclick="addToCart('Eclaire - Lattafa', 330000)" class="absolute bottom-0 left-0 w-full bg-black text-white py-4 text-[10px] uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">Añadir al carrito</button>
+                </div>
+                <p class="text-[10px] text-stone-400 uppercase tracking-widest mb-1">Lattafa</p>
+                <h4 class="text-sm font-medium uppercase tracking-tight mb-1 italic">Eclaire</h4>
+                <p class="text-stone-900 text-sm font-semibold">$330.000</p>
+            </div>
+
+            <div class="group">
+                <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-4">
+                    <img src="images/perfume-armaf-club-de-nuit-intense-man-hombre-locion-105ml.webp" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                    <button onclick="addToCart('Club de Nuit Intense - Armaf', 290000)" class="absolute bottom-0 left-0 w-full bg-black text-white py-4 text-[10px] uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">Añadir al carrito</button>
+                </div>
+                <p class="text-[10px] text-stone-400 uppercase tracking-widest mb-1">Armaf</p>
+                <h4 class="text-sm font-medium uppercase tracking-tight mb-1 italic">Club de Nuit Intense</h4>
+                <p class="text-stone-900 text-sm font-semibold">$290.000</p>
+            </div>
+        </div>
+        
+        <div class="mt-16 text-center">
+            <a href="catalogo.html" class="inline-block bg-white text-black border border-black px-12 py-4 text-xs uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all duration-300 shadow-sm">
+                Ver todo el catálogo
+            </a>
+        </div>
+    </section>
+
+    <section class="w-full bg-stone-900 text-white py-24 px-6 border-y border-stone-800">
+        <div class="max-w-4xl mx-auto text-center space-y-6">
+            <span class="uppercase tracking-[0.3em] text-[10px] text-stone-400 block mb-2">Guia para ti</span>
+            <h2 class="serif text-4xl md:text-5xl italic text-white mb-6">¿Cuándo llevar tu perfume?</h2>
+            <p class="text-stone-300 font-light text-sm max-w-2xl mx-auto leading-relaxed mb-10">
+                El clima y la ocasión transforman cómo se proyecta tu perfume en la piel. Conoce nuestra guía interactiva y descubre qué fragancias brillan más en el frío del Invierno, la frescura de la Primavera, el calor del Verano o la elegancia del Otoño.
+            </p>
+            <div class="pt-4">
+                <a href="Temporada.html" class="inline-block bg-white text-black border border-white px-10 py-4 text-xs uppercase tracking-[0.2em] hover:bg-transparent hover:text-white transition-all duration-500 shadow-xl">
+                    Descubrir por Temporada
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="w-full py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6 mb-12 text-center">
+            <h1 class="text-[10px] uppercase tracking-widest text-stone-500 mb-2">Síguenos en Instagram</h1>
+            <h2 class="serif text-3xl italic text-stone-800">@dperfumes_1</h2>
+        </div>
+        <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-0 auto-rows-[200px] md:auto-rows-[350px]">
+            <div class="col-span-2 row-span-2 overflow-hidden bg-stone-200 relative group">
+                <img src="images/loombook/favoritos.jpeg" class="w-full h-full object-cover group-hover:scale-105 transition duration-1000">
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <a href="https://www.instagram.com/dperfumes_1" target="_blank">
+                        <i class="fa-brands fa-instagram text-white text-4xl cursor-pointer "></i>
+                    </a>
+                </div>
+            </div>
+            <div class="overflow-hidden bg-stone-200 relative group">
+                <img src="images/loombook/diaynoche.jpg" class="w-full h-full object-cover group-hover:scale-105 transition duration-1000">
+                 <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <a href="https://www.instagram.com/dperfumes_1" target="_blank">
+                        <i class="fa-brands fa-instagram text-white text-3xl cursor-pointer"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="overflow-hidden bg-stone-200 relative group">
+                <img src="images/loombook/destino.jpg" class="w-full h-full object-cover group-hover:scale-105 transition duration-1000">
+                 <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <a href="https://www.instagram.com/dperfumes_1" target="_blank">
+                        <i class="fa-brands fa-instagram text-white text-3xl cursor-pointer"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-span-2 overflow-hidden bg-stone-200 relative group">
+                <img src="images/loombook/duracion.jpg" class="w-full h-full object-cover group-hover:scale-105 transition duration-1000">
+                 <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <a href="https://www.instagram.com/dperfumes_1" target="_blank">
+                        <i class="fa-brands fa-instagram text-white text-3xl cursor-pointer"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="bg-stone-50 py-24 px-6 border-t border-stone-200">
+        <div class="max-w-4xl mx-auto text-center space-y-6">
+            <div class="flex justify-center mb-4">
+                <i class="fa-brands fa-whatsapp text-4xl text-stone-300"></i> 
+                <i class="fa-brands fa-instagram text-4xl text-stone-300 px-4"></i>
+            </div>
+            <h2 class="serif text-3xl md:text-4xl text-stone-800 tracking-tight">¿Buscas el perfume perfecto?</h2>
+            <p class="text-stone-500 font-light max-w-xl mx-auto leading-relaxed">
+                Tenemos asesores que están disponibles para ayudarte a elegir el perfume que mejor combine contigo o para ayudarte a encontrar el regalo ideal.
+            </p>
+            <div class="pt-6">
+                <a href="#" class="inline-block bg-[#1a1a1a] text-white px-10 py-4 text-xs uppercase tracking-[0.2em] hover:bg-black transition-all duration-300 shadow-xl">
+                    Recibir asesoría personalizada
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="max-w-3xl mx-auto px-6 py-20">
+        <div class="text-center mb-12">
+            <span class="uppercase tracking-widest text-[10px] text-stone-500 block mb-2">Resolvemos tus dudas</span>
+            <h2 class="serif text-3xl italic text-stone-800">Preguntas Frecuentes</h2>
+        </div>
+        
+        <div class="space-y-2">
+            <details class="group border-b border-stone-200 [&_summary::-webkit-details-marker]:hidden">
+                <summary class="flex cursor-pointer items-center justify-between py-4 text-sm font-medium uppercase tracking-tight text-stone-800">
+                    <span>¿Dónde estamos ubicados?</span>
+                    <span class="transition duration-300 group-open:-rotate-180 text-stone-400">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </span>
+                </summary>
+                <p class="text-stone-500 text-sm font-light leading-relaxed pb-6">
+                    Somos una tienda virtual nacida en Ibagué y llegamos a cualquier rincón del país.
+                </p>
+            </details>
+
+            <details class="group border-b border-stone-200 [&_summary::-webkit-details-marker]:hidden">
+                <summary class="flex cursor-pointer items-center justify-between py-4 text-sm font-medium uppercase tracking-tight text-stone-800">
+                    <span>¿Qué medios de pago manejan?</span>
+                    <span class="transition duration-300 group-open:-rotate-180 text-stone-400">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </span>
+                </summary>
+                <p class="text-stone-500 text-sm font-light leading-relaxed pb-6">
+                    Actualmente contamos con transferencia o consignación a cuenta Bancolombia y Nequi.
+                </p>
+            </details>
+
+            <details class="group border-b border-stone-200 [&_summary::-webkit-details-marker]:hidden">
+                <summary class="flex cursor-pointer items-center justify-between py-4 text-sm font-medium uppercase tracking-tight text-stone-800">
+                    <span>¿Cómo funcionan los envíos y cuánto tardan?</span>
+                    <span class="transition duration-300 group-open:-rotate-180 text-stone-400">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </span>
+                </summary>
+                <p class="text-stone-500 text-sm font-light leading-relaxed pb-6">
+                    Una vez confirmado tu pago, procesaremos tu pedido y lo recibirás entre 5 y 7 días hábiles después de la confirmación.
+                </p>
+            </details>
+
+            <details class="group border-b border-stone-200 [&_summary::-webkit-details-marker]:hidden">
+                <summary class="flex cursor-pointer items-center justify-between py-4 text-sm font-medium uppercase tracking-tight text-stone-800">
+                    <span>¿Los perfumes son originales?</span>
+                    <span class="transition duration-300 group-open:-rotate-180 text-stone-400">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </span>
+                </summary>
+                <p class="text-stone-500 text-sm font-light leading-relaxed pb-6">
+                    En dperfumes cada fragancia ha sido cuidadosamente seleccionada para garantizar su autenticidad, procedencia y excelente estado, reflejando nuestro compromiso con la calidad, la transparencia y la confianza en cada compra.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <footer class="bg-[#141312] text-white pt-20 pb-10 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-16 mb-20">
+                <div class="space-y-6">
+                    <h2 class="serif text-2xl font-bold tracking-tighter uppercase">DP</h2>
+                    <p class="text-stone-400 text-sm font-light leading-relaxed max-w-xs">
+                        Perfumes pensados para la persona moderna que valora el buen olor y la sofisticación.
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <h3 class="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold">Servicio</h3>
+                    <ul class="space-y-4 text-sm text-stone-300 font-light">
+                        <li><button onclick="openPolicyModal('envios')" class="hover:text-white transition text-left cursor-pointer">Envíos y Devoluciones</button></li>
+                        <li><button onclick="openPolicyModal('garantias')" class="hover:text-white transition text-left cursor-pointer">Garantías</button></li>
+                        <li><button onclick="openPolicyModal('contacto')" class="hover:text-white transition text-left cursor-pointer">Contacto</button></li>
+                        <li><a href="Catalogo.html"><button class="hover:text-white transition text-left cursor-pointer">Catalogo</button></a></li>
+                        <li><a href="nosotros.html"><button class="hover:text-white transition text-left cursor-pointer">Sobre Nosotros</button></a></li>
+                    </ul>
+                </div>
+
+                <div class="flex gap-4">
+                    <a href="https://www.instagram.com/dperfumes_1" class="text-stone-400 hover:text-white"><i class="fa-brands fa-instagram"></i> @dperfumes_1</a>
+                    <a href="https://www.tiktok.com/@dperfumes_ibg" class="text-stone-400 hover:text-white"><i class="fa-brands fa-tiktok"></i> @dperfumes_ibg</a>
+                </div>
+
+                <div class="space-y-6">
+                    <h3 class="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold">Newsletter</h3>
+                    <div class="relative border-b border-stone-700 pb-2 flex justify-between items-center">
+                        <input type="email" placeholder="Tu email" class="bg-transparent border-none outline-none text-sm text-stone-300 placeholder-stone-600 w-full">
+                        <button class="text-[10px] uppercase tracking-widest text-stone-300 hover:text-white transition">Unirse</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-stone-800/50 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-[9px] uppercase tracking-[0.2em] text-stone-600">
+                    &copy; 2026 dPerfumes. TODOS LOS DERECHOS RESERVADOS.
+                </p>
+                <p class="text-[9px] uppercase tracking-[0.2em] text-stone-600">
+                    HECHO POR <a href="https://portafolio-sebaslondono.vercel.app" class="underline hover:text-stone-400">SEBAS LONDOÑO</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+<div id="policy-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] hidden opacity-0 transition-opacity duration-300 flex items-center justify-center px-4">
+        <div class="bg-white w-full max-w-lg p-8 relative transform scale-95 transition-transform duration-300 shadow-2xl">
+            <button onclick="closePolicyModal()" class="absolute top-4 right-5 text-stone-400 hover:text-black transition text-3xl">&times;</button>
+            <h3 id="modal-title" class="serif text-2xl italic text-stone-800 mb-6 border-b border-stone-100 pb-4"></h3>
+            <div id="modal-content" class="text-stone-600 text-sm font-light space-y-4 leading-relaxed">
+                </div>
+        </div>
+    </div>
+    <script src="JavaScript/Main.js">
+      
+    </script>
+
+    
+</body>
+</html>

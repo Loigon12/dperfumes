@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin | dPerfumes</title>
+    <link rel="icon" href="images/logo.png" sizes="any" />
+  <link rel="icon" href="images/logo.png" sizes="32x32" type="image/png" />
+  <link rel="icon" href="images/logo.png" sizes="16x16" type="image/png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        body { font-family: "Inter", sans-serif; background-color: #fafaf9; }
+        .serif { font-family: "Playfair Display", serif; }
+    </style>
+</head>
+<body class="text-stone-900 min-h-screen flex items-center justify-center p-6">
+
+    <div id="login-section" class="w-full max-w-md bg-white p-8 shadow-xl border border-stone-100">
+        <h1 class="serif text-3xl font-bold text-center mb-6 tracking-tighter">Admin DP</h1>
+        <div class="space-y-4">
+            <div>
+                <label class="text-xs uppercase tracking-widest text-stone-500 font-bold">Usuario</label>
+                <input type="text" id="username" class="w-full border-b border-stone-300 py-2 outline-none focus:border-black transition" placeholder="admin">
+            </div>
+            <div>
+                <label class="text-xs uppercase tracking-widest text-stone-500 font-bold">Contraseña</label>
+                <input type="password" id="password" class="w-full border-b border-stone-300 py-2 outline-none focus:border-black transition" placeholder="****">
+            </div>
+            <p id="login-error" class="text-red-500 text-xs hidden">Credenciales incorrectas.</p>
+            <button onclick="login()" class="w-full bg-black text-white py-3 text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition mt-6">
+                Ingresar
+            </button>
+        </div>
+    </div>
+
+    <div id="admin-dashboard" class="w-full max-w-4xl bg-white shadow-xl border border-stone-100 hidden">
+        <div class="bg-black text-white p-6 flex justify-between items-center">
+            <h2 class="serif text-2xl italic">Gestión de Productos</h2>
+            <button onclick="logout()" class="text-xs uppercase tracking-widest hover:text-stone-400 transition">Cerrar Sesión</button>
+        </div>
+        
+        <div class="p-8">
+            <h3 class="text-sm uppercase tracking-widest font-bold mb-6 border-b border-stone-100 pb-2">Agregar Nuevo Perfume</h3>
+            
+            <form id="add-product-form" class="grid grid-cols-1 md:grid-cols-2 gap-6" onsubmit="agregarProducto(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Nombre del Perfume</label>
+                        <input type="text" id="prod-name" required class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Marca</label>
+                        <select id="prod-brand" class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black bg-white">
+                            <option value="Black Oud Parfums">Black Oud Parfums</option>
+                            <option value="Devier Parfums">Devier Parfums</option>
+                            <option value="Paco Rabanne">Paco Rabanne</option>
+                            <option value="Giorgio Armani">Giorgio Armani</option>
+                            <option value="Yves Saint Laurent">Yves Saint Laurent</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Aroma Principal</label>
+                        <select id="prod-scent" class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black bg-white">
+                            <option value="Amaderado">Amaderado</option>
+                            <option value="Cítricos">Cítricos</option>
+                            <option value="Brisa Marina">Brisa Marina</option>
+                            <option value="Especiada">Especiada</option>
+                            <option value="Oriental">Oriental</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Precio (COP)</label>
+                        <input type="number" id="prod-price" required min="0" class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black">
+                    </div>
+                </div>
+
+                <div class="space-y-4 flex flex-col">
+                    <div>
+                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Descripción</label>
+                        <textarea id="prod-desc" required rows="4" class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Imagen del Producto</label>
+                        <input type="file" id="prod-image" accept="image/*" required class="w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:uppercase file:tracking-widest file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200 cursor-pointer">
+                    </div>
+                    <div class="flex items-center mt-2">
+                        <input type="checkbox" id="prod-stock" checked class="mr-2">
+                        <label class="text-xs uppercase tracking-widest text-stone-500 font-bold">¿En Existencia?</label>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-black text-white py-3 text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition mt-auto">
+                        Guardar Producto
+                    </button>
+                </div>
+            </form>
+
+            <div id="success-msg" class="hidden mt-4 p-4 bg-emerald-50 text-emerald-700 text-sm border border-emerald-200 text-center">
+                Producto agregado exitosamente al catálogo.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- LÓGICA DE AUTENTICACIÓN SIMULADA ---
+        function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorLabel = document.getElementById('login-error');
+
+            // Credenciales por defecto: admin / admin123
+            if (user === 'admin' && pass === 'admin123') {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                errorLabel.classList.add('hidden');
+            } else {
+                errorLabel.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // --- LÓGICA PARA AGREGAR PRODUCTOS ---
+        function agregarProducto(e) {
+            e.preventDefault(); // Evita que la página se recargue
+
+            const fileInput = document.getElementById('prod-image');
+            const file = fileInput.files[0];
+
+            if (file) {
+                // Usamos FileReader para convertir la imagen a un string Base64
+                // Esto permite guardar la imagen directamente en el localStorage
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    const base64Image = event.target.result;
+                    guardarEnBaseDeDatosLocal(base64Image);
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function guardarEnBaseDeDatosLocal(imageBase64) {
+            // 1. Obtener la base de datos actual del localStorage (o un array vacío si no existe)
+            let productosGuardados = JSON.parse(localStorage.getItem('dPerfumes_DB')) || [];
+
+            // 2. Crear el nuevo objeto producto
+            const nuevoProducto = {
+                id: Date.now(), // Genera un ID único basado en la fecha exacta
+                name: document.getElementById('prod-name').value,
+                brand: document.getElementById('prod-brand').value,
+                scent: document.getElementById('prod-scent').value,
+                price: parseInt(document.getElementById('prod-price').value),
+                description: document.getElementById('prod-desc').value,
+                inStock: document.getElementById('prod-stock').checked,
+                image: imageBase64 // Imagen en Base64
+            };
+
+            // 3. Agregar y guardar
+            productosGuardados.push(nuevoProducto);
+            localStorage.setItem('dPerfumes_DB', JSON.stringify(productosGuardados));
+
+            // 4. Limpiar formulario y mostrar éxito
+            document.getElementById('add-product-form').reset();
+            const successMsg = document.getElementById('success-msg');
+            successMsg.classList.remove('hidden');
+            setTimeout(() => { successMsg.classList.add('hidden'); }, 3000);
+        }
+    </script>
+</body>
+</html>
