@@ -182,7 +182,7 @@ function updateModalPriceUI() {
         // --- BASE DE DATOS LOCAL CON PRODUCTOS EXTRAÍDOS ---
         const productosDB = [
     { 
-        id: 1, name: "9 AM Dive", brand: "Afnan", scent: "Fresco", price: 270000, inStock: true, image: "images/9AMDive.webp", 
+        id: 1, name: "9 AM Dive", brand: "Afnan", scent: "Fresco", price: 270000, inStock: true, image: "images/9amDive.webp", 
         notasSalida: "Limón, menta, grosella negra y pimienta rosa", 
         notasCorazon: "Manzana, cedro e incienso", 
         notasFondo: "Jengibre, sándalo, pachuli y jazmín",
@@ -192,7 +192,7 @@ function updateModalPriceUI() {
         ]
     },
     { 
-        id: 2, name: "9 PM Pour Femme", brand: "Afnan", scent: "Frutal", price: 260000, inStock: true, image: "images/9AMPourFemme.jpg", 
+        id: 2, name: "9 PM Pour Femme", brand: "Afnan", scent: "Frutal", price: 260000, inStock: true, image: "images/9pmPourFemme.webp", 
         notasSalida: "Frambuesa, violeta, manzana y naranja", 
         notasCorazon: "Rosa, peonía, iris y jazmín", 
         notasFondo: "Ciprés, pino, ámbar y cedro", 
@@ -211,7 +211,7 @@ function updateModalPriceUI() {
         ]
     },
     { 
-        id: 4, name: "9 PM Elixir", brand: "Afnan", scent: "Especiado", price: 300000, inStock: true, image: "images/9PMElixir.webp", 
+        id: 4, name: "9 PM Elixir", brand: "Afnan", scent: "Especiado", price: 300000, inStock: true, image: "images/9pmElixir.webp", 
         notasSalida: "Cardamomo, nuez moscada y elemí", 
         notasCorazon: "Pimiento, Lavanda y Cuero", 
         notasFondo: "Vainilla, pachulí, labdanum y rosa de roca",
@@ -221,7 +221,7 @@ function updateModalPriceUI() {
         ]
     },
     { 
-        id: 5, name: "9 PM Night out", brand: "Afnan", scent: "Dulce", price: 330000, inStock: true, image: "images/9PMNightOut.webp", 
+        id: 5, name: "9 PM Night out", brand: "Afnan", scent: "Dulce", price: 330000, inStock: true, image: "images/9pmNightOut.webp", 
         notasSalida: "Pitahaya, lavanda, coñac, manzana y bergamota", 
         notasCorazon: "Toffee, Gamuza, Cardamomo, Cedar y Mahonial", 
         notasFondo: "Haba tonka, ambroxan, madera de akigalala y pachulí" ,
@@ -239,7 +239,7 @@ function updateModalPriceUI() {
         ] 
     },
     { 
-        id: 7, name: "Amber Oud Aqua Dubai", brand: "Al Haramain", scent: "Fresco", price: 340000, inStock: true, image: "images/amberOudAquiaDubai.webp", 
+        id: 7, name: "Amber Oud Aqua Dubai", brand: "Al Haramain", scent: "Fresco", price: 340000, inStock: true, image: "images/AmberOudAquiaDubai.webp", 
         notasSalida: "Bergamota, notas verdes y mandarina", 
         notasCorazon: "Melón, ámbar, grosella negra y piña", 
         notasFondo: "Almizcle, petitgrain, galbanum y vainilla", 
@@ -251,7 +251,7 @@ function updateModalPriceUI() {
         ]
     },
     { 
-        id: 8, name: "Amber Oud Dubai Night", brand: "Al Haramain", scent: "Oriental", price: 360000, inStock: true, image: "images/amberOudDubaiNight.webp", 
+        id: 8, name: "Amber Oud Dubai Night", brand: "Al Haramain", scent: "Oriental", price: 360000, inStock: true, image: "images/AmberOudDubaiNight.webp", 
         notasSalida: "Azafrán, bergamota y elemi", 
         notasCorazon: "Agarwood, rosa búlgara y Lirio del Valle", 
         notasFondo: "Haba tonka, ámbar, almizcle blanco y musgo de roble",
@@ -307,7 +307,7 @@ function updateModalPriceUI() {
         ]
     },
     { 
-        id: 13, name: "Asad", brand: "Lattafa", scent: "Amaderado", price: 250000, inStock: true, image: "images/lattafaAsad.webp", 
+        id: 13, name: "Asad", brand: "Lattafa", scent: "Amaderado", price: 250000, inStock: true, image: "images/LattafaAsad.webp", 
         notasSalida: "Pimienta negra, tabaco y piña", 
         notasCorazon: "Pachulí, café e iris", 
         notasFondo: "Vainilla, ámbar, madera seca, benjuí y ládano",
@@ -843,7 +843,7 @@ function updateModalPriceUI() {
         ] 
     },
     { 
-        id: 72, name: "Odyssey Spectra", brand: "Armaf", scent: "Especiado", price: 270000, inStock: true, image: "images/odyssey-spectra.webp", 
+        id: 72, name: "Odyssey Spectra", brand: "Armaf", scent: "Especiado", price: 270000, inStock: true, image: "images/Odyssey-Spectra.webp", 
         notasSalida: "Canela, manzana y bergamota", 
         notasCorazon: "Canela, lavanda, flor de azahar del naranjo y lirio de los valles", 
         notasFondo: "Vainilla, tabaco, haba tonka, ámbar y pachulí",
@@ -969,7 +969,7 @@ function updateModalPriceUI() {
         ] 
     },
     { 
-        id: 86, name: "Rayhaan Tiger", brand: "Rayhaan", scent: "Especiado", price: 260000, inStock: true, image: "images/rayhaan_Tiger.webp", 
+        id: 86, name: "Rayhaan Tiger", brand: "Rayhaan", scent: "Especiado", price: 260000, inStock: true, image: "images/Rayhaan_Tiger.webp", 
         notasSalida: "Nuez moscada, clavo de olor y limón (lima ácida)", 
         notasCorazon: "Leche, rosa y Davana", 
         notasFondo: "Ámbar, pachulí, incienso y ládano",
@@ -996,7 +996,7 @@ function updateModalPriceUI() {
         ] 
     },
     { 
-        id: 89, name: "Rome Pour Femme", brand: "Bharara", scent: "Floral", price: 230000, inStock: true, image: "images/rome-pour-femme.webp", 
+        id: 89, name: "Rome Pour Femme", brand: "Bharara", scent: "Floral", price: 230000, inStock: true, image: "images/Rome-Pour-Femme.webp", 
         notasSalida: "No especificadas en el catálogo", 
         notasCorazon: "No especificadas en el catálogo", 
         notasFondo: "No especificadas en el catálogo",
