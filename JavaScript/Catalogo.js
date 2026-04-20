@@ -200,23 +200,22 @@ function renderProductos(items) {
     noResultsMessage.classList.add('hidden');
 
     items.forEach(prod => {
-        const priceToShow = prod.presentations[0].price; // Precio de la primera opción
-        const badge = !prod.inStock ? `<span class="absolute top-2 left-2 bg-white/90 text-[10px] px-2 py-1 uppercase tracking-tighter">Agotado</span>` : '';
-
-        const html = `
-            <div class="group text-center">
-                <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-4 cursor-pointer rounded-lg" onclick="openProductModal(${prod.id})">
-                    <img src="${prod.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="${prod.name}">
-                    ${badge}
-                    <button class="absolute bottom-0 left-0 w-full bg-black text-white py-4 text-xs uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">
-                        Ver detalles
-                    </button>
-                </div>
-                <h4 class="text-sm font-medium tracking-tight mt-2 cursor-pointer hover:text-stone-500 transition" onclick="openProductModal(${prod.id})">${prod.name}</h4>
-                <p class="text-stone-500 text-sm mt-1 font-light">$${priceToShow.toLocaleString('es-CO')} COP</p>
+    const html = `
+        <div class="group text-center">
+            <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-2 cursor-pointer rounded-lg" onclick="openProductModal(${prod.id})">
+                <img src="${prod.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="${prod.name}">
+                ${badge}
+                <button class="hidden md:block absolute bottom-0 left-0 w-full bg-black/80 text-white py-3 text-[10px] uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">
+                    Ver detalles
+                </button>
             </div>
-        `;
-        productGrid.insertAdjacentHTML('beforeend', html);
+            <h4 class="text-[10px] md:text-sm font-medium tracking-tight mt-1 leading-tight h-8 flex items-center justify-center cursor-pointer" onclick="openProductModal(${prod.id})">
+                ${prod.name}
+            </h4>
+            <p class="text-stone-500 text-[9px] md:text-sm mt-1 font-light">$${priceToShow.toLocaleString('es-CO')}</p>
+        </div>
+    `;
+    productGrid.insertAdjacentHTML('beforeend', html);
     });
 }
 
