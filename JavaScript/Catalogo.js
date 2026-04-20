@@ -1,22 +1,23 @@
-  let cart = JSON.parse(localStorage.getItem('cart')) || []; 
-        const cartCount = document.getElementById("cart-count");
-        const cartSidebar = document.getElementById("cart-sidebar");
-        const cartOverlay = document.getElementById("cart-overlay");
-        const cartItemsContainer = document.getElementById("cart-items");
-        const cartTotalLabel = document.getElementById("cart-total");
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+const cartCount = document.getElementById("cart-count");
+const cartSidebar = document.getElementById("cart-sidebar");
+const cartOverlay = document.getElementById("cart-overlay");
+const cartItemsContainer = document.getElementById("cart-items");
+const cartTotalLabel = document.getElementById("cart-total");
 
-        function updateCartUI() {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCount.innerText = totalItems;
-            renderCart();
-            localStorage.setItem('cart', JSON.stringify(cart));
-        }
+// --- LÓGICA DEL CARRITO ---
 
-        function addToCart(id, quantity, size, price) {
+function updateCartUI() {
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCount.innerText = totalItems;
+    renderCart();
+    localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function addToCart(id, quantity, size, price) {
     const prod = productosDB.find(p => p.id === id);
     if (!prod) return;
 
-    // El ID único ahora es una combinación de ID + Tamaño
     const cartItemId = `${id}-${size}`;
     const existingItem = cart.find(item => item.cartId === cartItemId);
 
@@ -29,7 +30,8 @@
             name: prod.name, 
             price: price, 
             size: size, 
-            quantity: quantity 
+            quantity: quantity,
+            image: prod.image // Añadimos imagen para el mini-carrito
         });
     }
 
@@ -37,54 +39,59 @@
     toggleCart();
     closeProductModal(); 
 }
-        function toggleCart() {
-            const isOpen = !cartSidebar.classList.contains('translate-x-full');
-            if (isOpen) {
-                cartSidebar.classList.add('translate-x-full');
-                cartOverlay.classList.add('hidden');
-                cartOverlay.classList.remove('opacity-100');
-                document.body.style.overflow = "auto";
-            } else {
-                cartSidebar.classList.remove('translate-x-full');
-                cartOverlay.classList.remove('hidden');
-                setTimeout(() => cartOverlay.classList.add('opacity-100'), 10);
-                document.body.style.overflow = "hidden";
-            }
-        }
 
-        function renderCart() {
-            cartItemsContainer.innerHTML = "";
-            if (cart.length === 0) {
-                cartItemsContainer.innerHTML = `<p class="text-stone-400 text-center mt-10 font-light italic">El carrito está vacío</p>`;
-                cartTotalLabel.innerText = "$0";
-                return;
-            }
-            let total = 0;
-            cart.forEach((item, index) => {
-                const subtotal = item.price * item.quantity;
-                total += subtotal;
-                const div = document.createElement("div");
-                div.className = "flex justify-between items-center border-b border-stone-50 pb-3";
-                div.innerHTML = `
-                    <div>
-                        <p class="text-xs uppercase font-bold tracking-tighter">${item.name} <span class="text-stone-400 font-normal">x${item.quantity}</span></p>
-                        <p class="text-stone-500 text-xs">$${subtotal.toLocaleString('es-CO')}</p>
-                    </div>
-                    <button onclick="removeFromCart(${index})" class="text-stone-300 hover:text-red-500 transition">
-                        <i class="fa-solid fa-trash-can text-sm"></i>
-                    </button>
-                `;
-                cartItemsContainer.appendChild(div);
-            });
-            cartTotalLabel.innerText = `$${total.toLocaleString('es-CO')}`;
-        }
+function toggleCart() {
+    const isOpen = !cartSidebar.classList.contains('translate-x-full');
+    if (isOpen) {
+        cartSidebar.classList.add('translate-x-full');
+        cartOverlay.classList.add('hidden');
+        cartOverlay.classList.remove('opacity-100');
+        document.body.style.overflow = "auto";
+    } else {
+        cartSidebar.classList.remove('translate-x-full');
+        cartOverlay.classList.remove('hidden');
+        setTimeout(() => cartOverlay.classList.add('opacity-100'), 10);
+        document.body.style.overflow = "hidden";
+    }
+}
 
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartUI();
-        }
+function renderCart() {
+    cartItemsContainer.innerHTML = "";
+    if (cart.length === 0) {
+        cartItemsContainer.innerHTML = `<p class="text-stone-400 text-center mt-10 font-light italic text-sm">El carrito está vacío</p>`;
+        cartTotalLabel.innerText = "$0";
+        return;
+    }
 
-        function confirmarPedido() {
+    let total = 0;
+    cart.forEach((item, index) => {
+        const subtotal = item.price * item.quantity;
+        total += subtotal;
+        
+        const div = document.createElement("div");
+        div.className = "flex gap-4 items-center border-b border-stone-100 pb-4 mb-2";
+        div.innerHTML = `
+            <img src="${item.image}" class="w-16 h-20 object-cover bg-stone-100 rounded">
+            <div class="flex-1">
+                <p class="text-[11px] uppercase font-bold tracking-tight leading-none">${item.name}</p>
+                <p class="text-[10px] text-stone-400 uppercase mt-1">${item.size}</p>
+                <p class="text-stone-600 text-xs mt-1">${item.quantity} x $${item.price.toLocaleString('es-CO')}</p>
+            </div>
+            <button onclick="removeFromCart(${index})" class="text-stone-300 hover:text-red-500 transition px-2">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+        `;
+        cartItemsContainer.appendChild(div);
+    });
+    cartTotalLabel.innerText = `$${total.toLocaleString('es-CO')}`;
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartUI();
+}
+
+function confirmarPedido() {
     if (cart.length === 0) return;
     const telefono = "573007350100"; 
     let lista = cart.map(item => `- ${item.quantity}x ${item.name} (${item.size}) — $${(item.price * item.quantity).toLocaleString('es-CO')}`).join('\n');
@@ -93,21 +100,21 @@
     window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
 }
 
-        // --- VARIABLES DE ESTADO DEL MODAL ---
+// --- MODAL DE PRODUCTO ---
+
 let currentModalProductId = null;
 let currentModalQuantity = 1;
 let selectedSize = null;
 let selectedPrice = 0;
 
-        function openProductModal(id) {
-            const prod = productosDB.find(p => p.id === id);
+function openProductModal(id) {
+    const prod = productosDB.find(p => p.id === id);
     if (!prod) return;
 
     currentModalProductId = id;
     currentModalQuantity = 1;
     document.getElementById('modal-qty').innerText = currentModalQuantity;
 
-    // Seteamos la primera presentación por defecto
     const defaultPres = prod.presentations[0];
     selectedSize = defaultPres.size;
     selectedPrice = defaultPres.price;
@@ -117,7 +124,6 @@ let selectedPrice = 0;
     document.getElementById('modal-brand').innerText = prod.brand;
     updateModalPriceUI();
     
-    // Generar botones de tamaño
     const sizeContainer = document.getElementById('modal-sizes');
     sizeContainer.innerHTML = "";
     prod.presentations.forEach(pres => {
@@ -154,8 +160,6 @@ function selectPresentation(size, price, btnElement) {
     selectedSize = size;
     selectedPrice = price;
     updateModalPriceUI();
-
-    // Actualizar estilo visual de los botones
     document.querySelectorAll('#modal-sizes button').forEach(btn => {
         btn.className = "px-4 py-2 text-xs border border-stone-200 text-stone-600 hover:border-stone-400 transition";
     });
@@ -166,18 +170,18 @@ function updateModalPriceUI() {
     document.getElementById('modal-price').innerText = `$${selectedPrice.toLocaleString('es-CO')} COP`;
 }
 
-        function closeProductModal() {
-            const modal = document.getElementById('product-modal');
-            modal.classList.add('opacity-0');
-            document.body.style.overflow = "auto";
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
+function closeProductModal() {
+    const modal = document.getElementById('product-modal');
+    modal.classList.add('opacity-0');
+    document.body.style.overflow = "auto";
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
 
-        function updateModalQuantity(change) {
-            currentModalQuantity += change;
-            if (currentModalQuantity < 1) currentModalQuantity = 1;
-            document.getElementById('modal-qty').innerText = currentModalQuantity;
-        }
+function updateModalQuantity(change) {
+    currentModalQuantity += change;
+    if (currentModalQuantity < 1) currentModalQuantity = 1;
+    document.getElementById('modal-qty').innerText = currentModalQuantity;
+}
 
         // --- BASE DE DATOS LOCAL CON PRODUCTOS EXTRAÍDOS ---
         const productosDB = [
@@ -1143,75 +1147,58 @@ function updateModalPriceUI() {
     }
 ];
 
-        const productGrid = document.getElementById("product-grid");
-        const noResultsMessage = document.getElementById("no-results");
-        
-        const checkboxes = document.querySelectorAll('.filter-checkbox');
-        const priceRange = document.getElementById('price-range');
-        const priceDisplay = document.getElementById('price-display');
-        const sortSelect = document.getElementById('sort-select');
-        const searchInput = document.getElementById('search-input');
+// --- RENDERIZADO DEL GRID ---
 
-        function renderProductos(productos) {
-            productGrid.innerHTML = "";
-            
-            if (productos.length === 0) {
-                productGrid.classList.add('hidden');
-                noResultsMessage.classList.remove('hidden');
-                return;
-            }
+const productGrid = document.getElementById("product-grid");
+const noResultsMessage = document.getElementById("no-results");
 
-            productGrid.classList.remove('hidden');
-            noResultsMessage.classList.add('hidden');
+function renderProductos(items) {
+    productGrid.innerHTML = "";
+    if (items.length === 0) {
+        productGrid.classList.add('hidden');
+        noResultsMessage.classList.remove('hidden');
+        return;
+    }
 
-            productos.forEach(prod => {
-                const btnText = prod.inStock ? 'Ver más' : 'Agotado';
-                const btnClass = prod.inStock ? 'bg-black text-white hover:bg-stone-800' : 'bg-stone-300 text-stone-500 cursor-not-allowed';
-                const btnAction = prod.inStock ? `onclick="addToCart(${prod.id}, 1); event.stopPropagation();"` : 'disabled';
-                const btnOpenModal = prod.inStock ? `onclick="openProductModal(${prod.id})"` : '';
+    productGrid.classList.remove('hidden');
+    noResultsMessage.classList.add('hidden');
 
-                const html = `
-                    <div class="group text-center">
-                        <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-4 cursor-pointer rounded-lg" onclick="openProductModal(${prod.id})">
-                            <img src="${prod.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="${prod.name}">
-                            <button ${btnOpenModal} class="absolute bottom-0 left-0 w-full ${btnClass} py-4 text-xs uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">
-                                ${btnText}
-                            </button>
-                        </div>
-                        <h4 class="text-sm font-medium tracking-tight mt-2 cursor-pointer hover:text-stone-500 transition" onclick="openProductModal(${prod.id})">${prod.name}</h4>
-                        <p class="text-stone-500 text-sm mt-1 font-light">$${prod.price.toLocaleString('es-CO')} COP</p>
-                    </div>
-                `;
-                productGrid.insertAdjacentHTML('beforeend', html);
-            });
-        }
+    items.forEach(prod => {
+        const priceToShow = prod.presentations[0].price; // Precio de la primera opción
+        const badge = !prod.inStock ? `<span class="absolute top-2 left-2 bg-white/90 text-[10px] px-2 py-1 uppercase tracking-tighter">Agotado</span>` : '';
+
+        const html = `
+            <div class="group text-center">
+                <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-4 cursor-pointer rounded-lg" onclick="openProductModal(${prod.id})">
+                    <img src="${prod.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="${prod.name}">
+                    ${badge}
+                    <button class="absolute bottom-0 left-0 w-full bg-black text-white py-4 text-xs uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">
+                        Ver detalles
+                    </button>
+                </div>
+                <h4 class="text-sm font-medium tracking-tight mt-2 cursor-pointer hover:text-stone-500 transition" onclick="openProductModal(${prod.id})">${prod.name}</h4>
+                <p class="text-stone-500 text-sm mt-1 font-light">$${priceToShow.toLocaleString('es-CO')} COP</p>
+            </div>
+        `;
+        productGrid.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+// --- FILTROS ---
+
 function aplicarFiltros() {
-    // 1. Capturar el término de búsqueda y pasarlo a minúsculas
-    const searchTerm = searchInput.value.toLowerCase().trim(); 
-    
+    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
     const checkedBrands = Array.from(document.querySelectorAll('input[data-filter="brand"]:checked')).map(cb => cb.value);
     const checkedScents = Array.from(document.querySelectorAll('input[data-filter="scent"]:checked')).map(cb => cb.value);
     const checkedAvailability = Array.from(document.querySelectorAll('input[data-filter="availability"]:checked')).map(cb => cb.value);
-    const maxPrice = parseInt(priceRange.value);
+    const maxPrice = parseInt(document.getElementById('price-range').value);
 
     let filtrados = productosDB.filter(prod => {
-        // --- NUEVA LÓGICA DE BÚSQUEDA ---
-        if (searchTerm) {
-            const matchName = prod.name.toLowerCase().includes(searchTerm);
-            const matchBrand = prod.brand.toLowerCase().includes(searchTerm);
-            // Si no coincide ni con el nombre ni con la marca, lo descartamos
-            if (!matchName && !matchBrand) return false;
-        }
-        // ---------------------------------
-
-        if (prod.price > maxPrice) return false;
+        const prodPrice = prod.presentations[0].price;
+        if (searchTerm && !(prod.name.toLowerCase().includes(searchTerm) || prod.brand.toLowerCase().includes(searchTerm))) return false;
+        if (prodPrice > maxPrice) return false;
         if (checkedBrands.length > 0 && !checkedBrands.includes(prod.brand)) return false;
-        
-        // Manejo de la categoría Dulce / Gourmand
-        if (checkedScents.length > 0) {
-            const mappedScent = prod.scent === 'Gourmand' ? 'Dulce' : prod.scent;
-            if (!checkedScents.includes(mappedScent)) return false;
-        }
+        if (checkedScents.length > 0 && !checkedScents.includes(prod.scent === 'Gourmand' ? 'Dulce' : prod.scent)) return false;
         if (checkedAvailability.length > 0) {
             if (checkedAvailability.includes('in-stock') && !prod.inStock) return false;
             if (checkedAvailability.includes('out-of-stock') && prod.inStock) return false;
@@ -1219,35 +1206,26 @@ function aplicarFiltros() {
         return true;
     });
 
-    const sortBy = sortSelect.value;
+    const sortBy = document.getElementById('sort-select').value;
     if (sortBy === 'az') filtrados.sort((a, b) => a.name.localeCompare(b.name));
     if (sortBy === 'za') filtrados.sort((a, b) => b.name.localeCompare(a.name));
-    if (sortBy === 'low-high') filtrados.sort((a, b) => a.price - b.price);
-    if (sortBy === 'high-low') filtrados.sort((a, b) => b.price - a.price);
+    if (sortBy === 'low-high') filtrados.sort((a, b) => a.presentations[0].price - b.presentations[0].price);
+    if (sortBy === 'high-low') filtrados.sort((a, b) => b.presentations[0].price - a.presentations[0].price);
 
     renderProductos(filtrados);
 }
 
-        function resetFilters() {
-    searchInput.value = ''; // Limpia el input de búsqueda
-    checkboxes.forEach(cb => cb.checked = false);
-    priceRange.value = 600000;
-    priceDisplay.innerText = "$ 600.000";
+// --- INICIALIZACIÓN ---
+
+document.querySelectorAll('.filter-checkbox').forEach(cb => cb.addEventListener('change', aplicarFiltros));
+document.getElementById('sort-select').addEventListener('change', aplicarFiltros);
+document.getElementById('search-input').addEventListener('input', aplicarFiltros);
+document.getElementById('price-range').addEventListener('input', (e) => {
+    document.getElementById('price-display').innerText = "$ " + parseInt(e.target.value).toLocaleString('es-CO');
     aplicarFiltros();
-}
+});
 
-        checkboxes.forEach(cb => cb.addEventListener('change', aplicarFiltros));
-        sortSelect.addEventListener('change', aplicarFiltros);
-        
-        priceRange.addEventListener('input', (e) => {
-            const val = parseInt(e.target.value);
-            priceDisplay.innerText = "$ " + val.toLocaleString('es-CO');
-        });
-        priceRange.addEventListener('change', aplicarFiltros);
-
-        updateCartUI();
-        aplicarFiltros();
-         // --- LÓGICA DEL MODAL DE POLÍTICAS ---
+  // --- LÓGICA DEL MODAL DE POLÍTICAS ---
         const policyModal = document.getElementById('policy-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalContent = document.getElementById('modal-content');
@@ -1308,3 +1286,7 @@ function aplicarFiltros() {
         });
         // Escucha cada vez que el usuario teclea algo
         searchInput.addEventListener('input', aplicarFiltros);
+
+// Ejecutar al cargar
+updateCartUI();
+aplicarFiltros();
