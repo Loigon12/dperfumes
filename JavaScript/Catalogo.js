@@ -192,7 +192,7 @@ function updateModalPriceUI() {
         ]
     },
     { 
-        id: 2, name: "9 PM Pour Femme", brand: "Afnan", scent: "Frutal", price: 260000, inStock: true, image: "images/9amPourFemme.webp", 
+        id: 2, name: "9 PM Pour Femme", brand: "Afnan", scent: "Frutal", price: 260000, inStock: true, image: "images/9amPourFemme.jpg", 
         notasSalida: "Frambuesa, violeta, manzana y naranja", 
         notasCorazon: "Rosa, peonía, iris y jazmín", 
         notasFondo: "Ciprés, pino, ámbar y cedro", 
