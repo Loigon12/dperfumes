@@ -192,7 +192,7 @@ function updateModalPriceUI() {
         ]
     },
     { 
-        id: 2, name: "9 PM Pour Femme", brand: "Afnan", scent: "Frutal", price: 260000, inStock: true, image: "images/9pmPourFemme.webp", 
+        id: 2, name: "9 PM Pour Femme", brand: "Afnan", scent: "Frutal", price: 260000, inStock: true, image: "images/9amPourFemme.webp", 
         notasSalida: "Frambuesa, violeta, manzana y naranja", 
         notasCorazon: "Rosa, peonía, iris y jazmín", 
         notasFondo: "Ciprés, pino, ámbar y cedro", 
@@ -230,7 +230,7 @@ function updateModalPriceUI() {
         ]
     },
     { 
-        id: 6, name: "9 PM Rebel", brand: "Afnan", scent: "Amaderado", price: 300000, inStock: true, image: "images/9pm-Rebel.webp", 
+        id: 6, name: "9 PM Rebel", brand: "Afnan", scent: "Amaderado", price: 300000, inStock: true, image: "images/9Pm-Rebel.webp", 
         notasSalida: "Piña, manzana y mandarina", 
         notasCorazon: "Musgo de roble, cedro y vainilla", 
         notasFondo: "Madera seca, ámbar gris, caramelo y almizcle",
