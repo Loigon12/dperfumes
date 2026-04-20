@@ -199,7 +199,16 @@ function renderProductos(items) {
     productGrid.classList.remove('hidden');
     noResultsMessage.classList.add('hidden');
 
-    items.forEach(prod => {
+   items.forEach(prod => {
+    // 1. Declarar priceToShow (tomando el precio de la primera presentación)
+    const priceToShow = prod.presentations[0].price;
+
+    // 2. Declarar badge (verificando si hay stock)
+    const badge = !prod.inStock 
+        ? `<span class="absolute top-2 left-2 bg-white/90 text-[10px] px-2 py-1 uppercase tracking-tighter font-bold">Agotado</span>` 
+        : '';
+
+    // 3. Ahora sí, generar el HTML usando esas variables
     const html = `
         <div class="group text-center">
             <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-2 cursor-pointer rounded-lg" onclick="openProductModal(${prod.id})">
@@ -216,7 +225,7 @@ function renderProductos(items) {
         </div>
     `;
     productGrid.insertAdjacentHTML('beforeend', html);
-    });
+});
 }
 
 // --- FILTROS ---
