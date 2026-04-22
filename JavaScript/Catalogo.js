@@ -330,7 +330,49 @@ document.getElementById('price-range').addEventListener('input', (e) => {
         });
         // Escucha cada vez que el usuario teclea algo
         searchInput.addEventListener('input', aplicarFiltros);
+function toggleFilter(containerId, headerElement) {
+    const container = document.getElementById(containerId);
+    const icon = headerElement.querySelector('i');
 
+    if (container.classList.contains('hidden')) {
+        // Mostrar
+        container.classList.remove('hidden');
+        icon.classList.remove('-rotate-180'); // Vuelve a su posición original
+    } else {
+        // Ocultar
+        container.classList.add('hidden');
+        icon.classList.add('-rotate-180'); // Gira el chevron hacia arriba
+    }
+}
+
+// --- LÓGICA DE LA BARRA DE ANUNCIOS ---
+const announcements = [
+    "Envíos gratis por compras superiores a $250.000",
+    "10% off en primera compra"
+];
+
+let currentAnnouncement = 0;
+const announcementElement = document.getElementById("announcement-text");
+
+function rotateAnnouncements() {
+    if (!announcementElement) return;
+
+    // 1. Desvanecer (ocultar)
+    announcementElement.classList.replace("opacity-100", "opacity-0");
+
+    setTimeout(() => {
+        // 2. Cambiar el texto
+        currentAnnouncement = (currentAnnouncement + 1) % announcements.length;
+        announcementElement.innerText = announcements[currentAnnouncement];
+
+        // 3. Mostrar de nuevo
+        announcementElement.classList.replace("opacity-0", "opacity-100");
+    }, 200); // Espera a que termine la animación de salida
+}
+
+// Cambiar cada 4 segundos
+setInterval(rotateAnnouncements, 2000);
+        
 // Ejecutar al cargar
 updateCartUI();
 aplicarFiltros();
