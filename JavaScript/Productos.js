@@ -7,7 +7,7 @@
         notasFondo: "Jengibre, sándalo, pachuli y jazmín",
         
         presentations: [
-            { size: "100ml", price: 340000 }
+            { size: "100ml", price: 270000 }
         ]
     },
     { 
@@ -16,7 +16,7 @@
         notasCorazon: "Rosa, peonía, iris y jazmín", 
         notasFondo: "Ciprés, pino, ámbar y cedro", 
         presentations: [
-            { size: "100ml", price: 340000 }
+            { size: "100ml", price: 260000 }
         ]
     },
     { 
@@ -26,7 +26,7 @@
         notasFondo: "Vainilla, haba tonka, ámbar y pachulí", 
 
         presentations: [
-            { size: "100ml", price: 340000 }
+            { size: "100ml", price: 250000 }
         ]
     },
     { 
@@ -36,7 +36,7 @@
         notasFondo: "Vainilla, pachulí, labdanum y rosa de roca",
         
         presentations: [
-            { size: "100ml", price: 340000 }
+            { size: "100ml", price: 300000 }
         ]
     },
     { 
@@ -45,7 +45,7 @@
         notasCorazon: "Toffee, Gamuza, Cardamomo, Cedar y Mahonial", 
         notasFondo: "Haba tonka, ambroxan, madera de akigalala y pachulí" ,
         presentations: [
-            { size: "100ml", price: 340000 }
+            { size: "100ml", price: 330000 }
         ]
     },
     { 
@@ -54,7 +54,7 @@
         notasCorazon: "Musgo de roble, cedro y vainilla", 
         notasFondo: "Madera seca, ámbar gris, caramelo y almizcle",
         presentations: [
-            { size: "100ml", price: 340000 }
+            { size: "100ml", price: 300000 }
         ] 
     },
     { 
