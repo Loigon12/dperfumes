@@ -1,177 +1,200 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin | dPerfumes</title>
-    <link rel="icon" href="images/logo.png" sizes="any" />
-  <link rel="icon" href="images/logo.png" sizes="32x32" type="image/png" />
-  <link rel="icon" href="images/logo.png" sizes="16x16" type="image/png" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
-        body { font-family: "Inter", sans-serif; background-color: #fafaf9; }
-        .serif { font-family: "Playfair Display", serif; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dPerfumes · Panel Admin</title>
+  <link rel="stylesheet" href="admin.css">
 </head>
-<body class="text-stone-900 min-h-screen flex items-center justify-center p-6">
+<body>
 
-    <div id="login-section" class="w-full max-w-md bg-white p-8 shadow-xl border border-stone-100">
-        <h1 class="serif text-3xl font-bold text-center mb-6 tracking-tighter">Admin DP</h1>
-        <div class="space-y-4">
-            <div>
-                <label class="text-xs uppercase tracking-widest text-stone-500 font-bold">Usuario</label>
-                <input type="text" id="username" class="w-full border-b border-stone-300 py-2 outline-none focus:border-black transition" placeholder="admin">
-            </div>
-            <div>
-                <label class="text-xs uppercase tracking-widest text-stone-500 font-bold">Contraseña</label>
-                <input type="password" id="password" class="w-full border-b border-stone-300 py-2 outline-none focus:border-black transition" placeholder="****">
-            </div>
-            <p id="login-error" class="text-red-500 text-xs hidden">Credenciales incorrectas.</p>
-            <button onclick="login()" class="w-full bg-black text-white py-3 text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition mt-6">
-                Ingresar
-            </button>
-        </div>
+<!-- ─── LOGIN ──────────────────────────────────────────────── -->
+<section id="login-section">
+  <div class="login-card">
+    <h2>Acceso Administrador</h2>
+    <form onsubmit="loginAdmin(event)">
+      <div class="campo">
+        <label for="login-email">Correo electrónico</label>
+        <input type="email" id="login-email" required placeholder="admin@dperfumes.com" autocomplete="username">
+      </div>
+      <div class="campo">
+        <label for="login-password">Contraseña</label>
+        <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <p id="login-error"></p>
+      <button type="submit" class="btn-login">Ingresar</button>
+    </form>
+  </div>
+</section>
+
+<!-- ─── PANEL ───────────────────────────────────────────────── -->
+<div id="panel" class="hidden">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <h1>dPerfumes · Panel Admin</h1>
+    <div style="display:flex;align-items:center;gap:.75rem;">
+      <a href="index.html" target="_blank"
+         style="font-size:.75rem;color:rgba(255,255,255,.7);text-decoration:none;">
+        Ver catálogo ↗
+      </a>
+      <button onclick="window.location.href='upload_imagenes.html'" style="background-color:#37b910;color:white;border:none;padding:.5rem 1rem;cursor:pointer;">Subir Imagenes</button>
+      <button class="btn-logout" onclick="logoutAdmin()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <!-- Contenido -->
+  <main class="contenedor">
+
+    <div class="card">
+      <!-- Barra de acciones -->
+      <div class="barra-acciones">
+        <input type="search" id="search-admin" placeholder="Buscar por nombre o marca…">
+        <span id="total-label" style="font-size:.78rem;color:#9ca3af;white-space:nowrap;"></span>
+        <button class="btn-nuevo" onclick="abrirModalCrear()">+ Nuevo perfume</button>
+      </div>
+
+      <!-- Tabla -->
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Imagen</th>
+              <th>Nombre</th>
+              <th>Marca</th>
+              <th>Familia</th>
+              <th>Desde</th>
+              <th>Stock</th>
+              <th style="text-align:right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-perfumes">
+            <tr><td colspan="7" class="text-center py-8" style="color:#9ca3af">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div id="paginacion"></div>
     </div>
 
-    <div id="admin-dashboard" class="w-full max-w-4xl bg-white shadow-xl border border-stone-100 hidden">
-        <div class="bg-black text-white p-6 flex justify-between items-center">
-            <h2 class="serif text-2xl italic">Gestión de Productos</h2>
-            <button onclick="logout()" class="text-xs uppercase tracking-widest hover:text-stone-400 transition">Cerrar Sesión</button>
-        </div>
-        
-        <div class="p-8">
-            <h3 class="text-sm uppercase tracking-widest font-bold mb-6 border-b border-stone-100 pb-2">Agregar Nuevo Perfume</h3>
-            
-            <form id="add-product-form" class="grid grid-cols-1 md:grid-cols-2 gap-6" onsubmit="agregarProducto(event)">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Nombre del Perfume</label>
-                        <input type="text" id="prod-name" required class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black">
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Marca</label>
-                        <select id="prod-brand" class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black bg-white">
-                            <option value="Black Oud Parfums">Black Oud Parfums</option>
-                            <option value="Devier Parfums">Devier Parfums</option>
-                            <option value="Paco Rabanne">Paco Rabanne</option>
-                            <option value="Giorgio Armani">Giorgio Armani</option>
-                            <option value="Yves Saint Laurent">Yves Saint Laurent</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Aroma Principal</label>
-                        <select id="prod-scent" class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black bg-white">
-                            <option value="Amaderado">Amaderado</option>
-                            <option value="Cítricos">Cítricos</option>
-                            <option value="Brisa Marina">Brisa Marina</option>
-                            <option value="Especiada">Especiada</option>
-                            <option value="Oriental">Oriental</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Precio (COP)</label>
-                        <input type="number" id="prod-price" required min="0" class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black">
-                    </div>
-                </div>
+  </main>
+</div>
 
-                <div class="space-y-4 flex flex-col">
-                    <div>
-                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Descripción</label>
-                        <textarea id="prod-desc" required rows="4" class="w-full border border-stone-200 p-2 text-sm outline-none focus:border-black resize-none"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase tracking-widest text-stone-500 font-bold mb-1">Imagen del Producto</label>
-                        <input type="file" id="prod-image" accept="image/*" required class="w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:uppercase file:tracking-widest file:bg-stone-100 file:text-stone-700 hover:file:bg-stone-200 cursor-pointer">
-                    </div>
-                    <div class="flex items-center mt-2">
-                        <input type="checkbox" id="prod-stock" checked class="mr-2">
-                        <label class="text-xs uppercase tracking-widest text-stone-500 font-bold">¿En Existencia?</label>
-                    </div>
-                    
-                    <button type="submit" class="w-full bg-black text-white py-3 text-xs uppercase tracking-[0.2em] hover:bg-stone-800 transition mt-auto">
-                        Guardar Producto
-                    </button>
-                </div>
-            </form>
+<!-- ─── MODAL CREAR / EDITAR ────────────────────────────────── -->
+<div id="modal" class="hidden">
+  <div id="modal-overlay"></div>
+  <div class="modal-box">
+    <h2 id="modal-titulo">Nuevo Perfume</h2>
 
-            <div id="success-msg" class="hidden mt-4 p-4 bg-emerald-50 text-emerald-700 text-sm border border-emerald-200 text-center">
-                Producto agregado exitosamente al catálogo.
-            </div>
+    <form id="perfume-form" onsubmit="guardarPerfume(event)" novalidate>
+      <!-- Campo oculto con la ruta de imagen existente -->
+      <input type="hidden" id="f-imagen-path">
+
+      <!-- Nombre y Marca -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+        <div class="campo">
+          <label for="f-name">Nombre *</label>
+          <input type="text" id="f-name" required placeholder="Ej: 9 PM Elixir">
         </div>
+        <div class="campo">
+          <label for="f-brand">Marca *</label>
+          <input type="text" id="f-brand" required placeholder="Ej: Afnan">
+        </div>
+      </div>
+
+      <!-- Familia olfativa y stock -->
+      <div style="display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:end;">
+        <div class="campo">
+          <label for="f-scent">Familia olfativa *</label>
+          <select id="f-scent" required>
+            <option value="">— Seleccionar —</option>
+            <option>Fresco</option>
+            <option>Frutal</option>
+            <option>Dulce</option>
+            <option>Especiado</option>
+            <option>Amaderado</option>
+            <option>Oriental</option>
+            <option>Cítrico</option>
+            <option>Floral</option>
+          </select>
+        </div>
+        <div class="campo" style="display:flex;align-items:center;gap:.5rem;padding-bottom:.25rem;">
+          <input type="checkbox" id="f-in-stock" checked style="width:16px;height:16px;">
+          <label for="f-in-stock" style="font-size:.82rem;font-weight:500;cursor:pointer;">En stock</label>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div class="campo">
+        <label for="f-notas-salida">Notas de Salida</label>
+        <textarea id="f-notas-salida" rows="2" placeholder="Ej: Limón, menta, bergamota…"></textarea>
+      </div>
+      <div class="campo">
+        <label for="f-notas-corazon">Notas de Corazón</label>
+        <textarea id="f-notas-corazon" rows="2" placeholder="Ej: Rosa, iris…"></textarea>
+      </div>
+      <div class="campo">
+        <label for="f-notas-fondo">Notas de Fondo</label>
+        <textarea id="f-notas-fondo" rows="2" placeholder="Ej: Vainilla, sándalo…"></textarea>
+      </div>
+
+      <!-- Presentaciones -->
+      <div class="campo">
+        <label>Presentaciones (tamaño + precio) *</label>
+        <div id="presentaciones-list"></div>
+        <button type="button" class="btn-agregar-pres" onclick="agregarPresentacion()">
+          + Agregar presentación
+        </button>
+      </div>
+
+      <!-- Imagen -->
+      <div class="campo">
+        <label>Imagen del producto</label>
+        <div class="img-preview-wrap">
+          <img id="img-preview" src="images/placeholder.webp" alt="Vista previa">
+          <div style="flex:1;">
+            <input type="file" id="f-imagen" accept="image/*" style="font-size:.78rem;">
+            <p style="font-size:.72rem;color:#9ca3af;margin-top:.35rem;">
+              Formatos: JPG, PNG, WEBP. Se sube al bucket <em>perfumes-images</em>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="modal-footer">
+        <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+        <button type="submit" id="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ─── MODAL CONFIRMAR ELIMINAR ───────────────────────────── -->
+<div id="confirm-modal" class="hidden">
+  <div class="confirm-box">
+    <h3>¿Eliminar este perfume?</h3>
+    <p>Esta acción es irreversible. También se borrará la imagen del bucket.</p>
+    <input type="hidden" id="confirm-id">
+    <input type="hidden" id="confirm-path">
+    <div class="confirm-btns">
+      <button class="btn-confirm-cancel"
+              onclick="document.getElementById('confirm-modal').classList.add('hidden')">
+        Cancelar
+      </button>
+      <button class="btn-confirm-ok" onclick="ejecutarEliminar()">Eliminar</button>
     </div>
+  </div>
+</div>
 
-    <script>
-        // --- LÓGICA DE AUTENTICACIÓN SIMULADA ---
-        function login() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            const errorLabel = document.getElementById('login-error');
+<!-- ─── TOAST ───────────────────────────────────────────────── -->
+<div id="toast" class="toast"></div>
 
-            // Credenciales por defecto: admin / admin123
-            if (user === 'admin' && pass === 'admin123') {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('admin-dashboard').classList.remove('hidden');
-                errorLabel.classList.add('hidden');
-            } else {
-                errorLabel.classList.remove('hidden');
-            }
-        }
+<!-- ─── SCRIPTS ─────────────────────────────────────────────── -->
+<!-- Supabase JS v2 (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="JavaScript/admin.js"></script>
 
-        function logout() {
-            document.getElementById('login-section').classList.remove('hidden');
-            document.getElementById('admin-dashboard').classList.add('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
-
-        // --- LÓGICA PARA AGREGAR PRODUCTOS ---
-        function agregarProducto(e) {
-            e.preventDefault(); // Evita que la página se recargue
-
-            const fileInput = document.getElementById('prod-image');
-            const file = fileInput.files[0];
-
-            if (file) {
-                // Usamos FileReader para convertir la imagen a un string Base64
-                // Esto permite guardar la imagen directamente en el localStorage
-                const reader = new FileReader();
-                
-                reader.onload = function(event) {
-                    const base64Image = event.target.result;
-                    guardarEnBaseDeDatosLocal(base64Image);
-                };
-                
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function guardarEnBaseDeDatosLocal(imageBase64) {
-            // 1. Obtener la base de datos actual del localStorage (o un array vacío si no existe)
-            let productosGuardados = JSON.parse(localStorage.getItem('dPerfumes_DB')) || [];
-
-            // 2. Crear el nuevo objeto producto
-            const nuevoProducto = {
-                id: Date.now(), // Genera un ID único basado en la fecha exacta
-                name: document.getElementById('prod-name').value,
-                brand: document.getElementById('prod-brand').value,
-                scent: document.getElementById('prod-scent').value,
-                price: parseInt(document.getElementById('prod-price').value),
-                description: document.getElementById('prod-desc').value,
-                inStock: document.getElementById('prod-stock').checked,
-                image: imageBase64 // Imagen en Base64
-            };
-
-            // 3. Agregar y guardar
-            productosGuardados.push(nuevoProducto);
-            localStorage.setItem('dPerfumes_DB', JSON.stringify(productosGuardados));
-
-            // 4. Limpiar formulario y mostrar éxito
-            document.getElementById('add-product-form').reset();
-            const successMsg = document.getElementById('success-msg');
-            successMsg.classList.remove('hidden');
-            setTimeout(() => { successMsg.classList.add('hidden'); }, 3000);
-        }
-    </script>
 </body>
 </html>

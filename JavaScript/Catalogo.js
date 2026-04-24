@@ -1,3 +1,19 @@
+// ============================================================
+//  js/Catalogo.js  —  dPerfumes · Catálogo público
+//  Integrado con Supabase y lógica de UI unificada
+// ============================================================
+
+const SUPABASE_URL  = 'https://aabdbymmnqbnnxppqzki.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhYmRieW1tbnFibm54cHBxemtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MjcxNjgsImV4cCI6MjA5MjUwMzE2OH0.CUSZHE6A1kCjQ3soKzuAznwxUjzaGx55KNrZb0VSDzI';
+const BUCKET        = 'perfumes-images';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// Base de datos en memoria (cargada desde Supabase al inicio)
+let productosDB = [];
+
+// --- VARIABLES GLOBALES DE UI ---
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 const cartCount = document.getElementById("cart-count");
 const cartSidebar = document.getElementById("cart-sidebar");
@@ -5,11 +21,158 @@ const cartOverlay = document.getElementById("cart-overlay");
 const cartItemsContainer = document.getElementById("cart-items");
 const cartTotalLabel = document.getElementById("cart-total");
 const searchInput = document.getElementById('search-input');
-// --- LÓGICA DEL CARRITO ---
+const productGrid = document.getElementById("product-grid");
+const noResultsMessage = document.getElementById("no-results");
+
+// ─── CARGA INICIAL DE SUPABASE ────────────────────────────────────────────
+
+async function cargarProductos() {
+    const { data, error } = await sb
+        .from('perfumes')
+        .select('*')
+        .order('name', { ascending: true });
+
+    if (error) {
+        console.error('Error al cargar perfumes:', error.message);
+        return;
+    }
+
+    // Mapear columnas de Supabase al formato que usa el resto del JS
+    productosDB = data.map(p => ({
+        id:            p.id,
+        name:          p.name,
+        brand:         p.brand,
+        scent:         p.scent,
+        price:         p.presentations[0]?.price ?? 0,
+        inStock:       p.in_stock,
+        // URL pública desde el bucket; si imagen_path es null usa placeholder
+        image:         p.imagen_path
+                         ? sb.storage.from(BUCKET).getPublicUrl(p.imagen_path).data.publicUrl
+                         : 'images/placeholder.webp',
+        notasSalida:   p.notas_salida,
+        notasCorazon:  p.notas_corazon,
+        notasFondo:    p.notas_fondo,
+        presentations: p.presentations,  // [{size, price}, ...]
+    }));
+
+    // Una vez cargados los productos, inicializar el resto de la UI
+    inicializarCatalogo();
+}
+
+function inicializarCatalogo() {
+    actualizarFiltrosMarcas();
+    aplicarFiltros();
+    updateCartUI();
+    rotateAnnouncements();
+}
+
+// Construye dinámicamente los checkboxes de marca según los productos
+function actualizarFiltrosMarcas() {
+    const marcas = [...new Set(productosDB.map(p => p.brand))].sort();
+    const cont   = document.getElementById('filtro-marcas');
+    if (!cont) return;
+
+    cont.innerHTML = marcas.map(m => `
+        <label class="flex items-center gap-2 text-xs text-stone-600 cursor-pointer">
+            <input type="checkbox" class="filter-checkbox" data-filter="brand" value="${m}">
+            <span>${m}</span>
+        </label>`).join('');
+
+    // Re-vincular eventos después de reconstruir
+    cont.querySelectorAll('.filter-checkbox').forEach(cb =>
+        cb.addEventListener('change', aplicarFiltros)
+    );
+}
+
+// ─── RENDERIZADO DEL GRID ─────────────────────────────────────────
+
+function renderProductos(items) {
+    if (!productGrid) return;
+    productGrid.innerHTML = "";
+
+    if (items.length === 0) {
+        productGrid.classList.add('hidden');
+        if (noResultsMessage) noResultsMessage.classList.remove('hidden');
+        return;
+    }
+
+    productGrid.classList.remove('hidden');
+    if (noResultsMessage) noResultsMessage.classList.add('hidden');
+
+    items.forEach(prod => {
+        const priceToShow = prod.presentations[0]?.price ?? prod.price;
+        const badge = !prod.inStock 
+            ? `<span class="absolute top-2 left-2 bg-white/90 text-[10px] px-2 py-1 uppercase tracking-tighter font-bold">Agotado</span>` 
+            : '';
+
+        const html = `
+            <div class="group text-center">
+                <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-2 cursor-pointer rounded-lg" onclick="openProductModal(${prod.id})">
+                    <img src="${prod.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="${prod.name}" onerror="this.src='images/placeholder.webp'">
+                    ${badge}
+                    <button class="hidden md:block absolute bottom-0 left-0 w-full bg-black/80 text-white py-3 text-[10px] uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">
+                        Ver detalles
+                    </button>
+                </div>
+                <h4 class="text-[10px] md:text-sm font-medium tracking-tight mt-1 leading-tight h-8 flex items-center justify-center cursor-pointer" onclick="openProductModal(${prod.id})">
+                    ${prod.name}
+                </h4>
+                <p class="text-stone-500 text-[9px] md:text-sm mt-1 font-light">$${priceToShow.toLocaleString('es-CO')}</p>
+            </div>
+        `;
+        productGrid.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+// ─── FILTROS ───────────────────────────────────────────────
+
+function aplicarFiltros() {
+    const searchTerm = document.getElementById('search-input')?.value.toLowerCase().trim() ?? '';
+    const checkedBrands = Array.from(document.querySelectorAll('input[data-filter="brand"]:checked')).map(cb => cb.value);
+    const checkedScents = Array.from(document.querySelectorAll('input[data-filter="scent"]:checked')).map(cb => cb.value);
+    const checkedAvailability = Array.from(document.querySelectorAll('input[data-filter="availability"]:checked')).map(cb => cb.value);
+    const maxPrice = parseInt(document.getElementById('price-range')?.value ?? 9999999);
+
+    let filtrados = productosDB.filter(prod => {
+        const prodPrice = prod.presentations[0]?.price ?? 0;
+        if (searchTerm && !(prod.name.toLowerCase().includes(searchTerm) || prod.brand.toLowerCase().includes(searchTerm))) return false;
+        if (prodPrice > maxPrice) return false;
+        if (checkedBrands.length > 0 && !checkedBrands.includes(prod.brand)) return false;
+        if (checkedScents.length > 0 && !checkedScents.includes(prod.scent === 'Gourmand' ? 'Dulce' : prod.scent)) return false;
+        if (checkedAvailability.length > 0) {
+            if (checkedAvailability.includes('in-stock') && !prod.inStock) return false;
+            if (checkedAvailability.includes('out-of-stock') && prod.inStock) return false;
+        }
+        return true;
+    });
+
+    const sortBy = document.getElementById('sort-select')?.value ?? '';
+    if (sortBy === 'az') filtrados.sort((a, b) => a.name.localeCompare(b.name));
+    if (sortBy === 'za') filtrados.sort((a, b) => b.name.localeCompare(a.name));
+    if (sortBy === 'low-high') filtrados.sort((a, b) => (a.presentations[0]?.price ?? 0) - (b.presentations[0]?.price ?? 0));
+    if (sortBy === 'high-low') filtrados.sort((a, b) => (b.presentations[0]?.price ?? 0) - (a.presentations[0]?.price ?? 0));
+
+    renderProductos(filtrados);
+}
+
+function toggleFilter(containerId, headerElement) {
+    const container = document.getElementById(containerId);
+    const icon = headerElement.querySelector('i');
+
+    if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+        icon.classList.remove('-rotate-180');
+    } else {
+        container.classList.add('hidden');
+        icon.classList.add('-rotate-180');
+    }
+}
+
+// ─── LÓGICA DEL CARRITO ───────────────────────────────────────
 
 function updateCartUI() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCount.innerText = totalItems;
+    if (cartCount) cartCount.innerText = totalItems;
     renderCart();
     localStorage.setItem('cart', JSON.stringify(cart));
 }
@@ -31,7 +194,7 @@ function addToCart(id, quantity, size, price) {
             price: price, 
             size: size, 
             quantity: quantity,
-            image: prod.image // Añadimos imagen para el mini-carrito
+            image: prod.image
         });
     }
 
@@ -56,10 +219,12 @@ function toggleCart() {
 }
 
 function renderCart() {
+    if (!cartItemsContainer) return;
     cartItemsContainer.innerHTML = "";
+    
     if (cart.length === 0) {
         cartItemsContainer.innerHTML = `<p class="text-stone-400 text-center mt-10 font-light italic text-sm">El carrito está vacío</p>`;
-        cartTotalLabel.innerText = "$0";
+        if (cartTotalLabel) cartTotalLabel.innerText = "$0";
         return;
     }
 
@@ -83,7 +248,7 @@ function renderCart() {
         `;
         cartItemsContainer.appendChild(div);
     });
-    cartTotalLabel.innerText = `$${total.toLocaleString('es-CO')}`;
+    if (cartTotalLabel) cartTotalLabel.innerText = `$${total.toLocaleString('es-CO')}`;
 }
 
 function removeFromCart(index) {
@@ -100,7 +265,7 @@ function confirmarPedido() {
     window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
 }
 
-// --- MODAL DE PRODUCTO ---
+// ─── MODAL DE PRODUCTO ────────────────────────────────────────
 
 let currentModalProductId = null;
 let currentModalQuantity = 1;
@@ -183,169 +348,63 @@ function updateModalQuantity(change) {
     document.getElementById('modal-qty').innerText = currentModalQuantity;
 }
 
-// --- RENDERIZADO DEL GRID ---
+// ─── MODAL DE POLÍTICAS ────────────────────────────────────────
 
-const productGrid = document.getElementById("product-grid");
-const noResultsMessage = document.getElementById("no-results");
+const policyModal = document.getElementById('policy-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalContent = document.getElementById('modal-content');
 
-function renderProductos(items) {
-    productGrid.innerHTML = "";
-    if (items.length === 0) {
-        productGrid.classList.add('hidden');
-        noResultsMessage.classList.remove('hidden');
-        return;
+const policiesData = {
+    envios: {
+        title: "Política de Devoluciones o Cambios",
+        html: "<p>El producto no puede estar abierto, usado ni modificado de su estado original. Debe estar en buen estado, limpio y con las etiquetas originales.</p>"
+    },
+    garantias: {
+        title: "Garantía",
+        html: "<p>En dperfumes garantizamos que todos nuestros productos son 100% originales.</p><p>Trabajamos únicamente con proveedores confiables para asegurar autenticidad, calidad y correcta conservación de cada fragancia.</p><p>Si tu producto presenta algún inconveniente, contáctanos y te ayudaremos a resolverlo de forma rápida y transparente.</p><p class='font-medium text-stone-800 pt-2'>Tu confianza es lo más importante para nosotros.</p>"
+    },
+    contacto: {
+        title: "Contacto",
+        html: "<p>¿Tienes preguntas o necesitas ayuda? Nuestro equipo de atención al cliente está aquí para ti. Puedes contactarnos a través de:</p><ul class='list-disc list-inside'><li><strong>WhatsApp:</strong> <a href='https://wa.me/573007350100' class='text-blue-600 hover:underline'>+57 300 7350100</a></li><li><strong>Instagram:</strong> <a href='https://instagram.com/dperfumes_1' class='text-blue-600 hover:underline'>@dperfumes_1</a></li><li><strong>Tiktok:</strong> <a href='https://tiktok.com/@dperfumes_ibg' class='text-blue-600 hover:underline'>@dperfumes_ibg</a></li></ul>"
     }
+};
 
-    productGrid.classList.remove('hidden');
-    noResultsMessage.classList.add('hidden');
-
-   items.forEach(prod => {
-    // 1. Declarar priceToShow (tomando el precio de la primera presentación)
-    const priceToShow = prod.presentations[0].price;
-
-    // 2. Declarar badge (verificando si hay stock)
-    const badge = !prod.inStock 
-        ? `<span class="absolute top-2 left-2 bg-white/90 text-[10px] px-2 py-1 uppercase tracking-tighter font-bold">Agotado</span>` 
-        : '';
-
-    // 3. Ahora sí, generar el HTML usando esas variables
-    const html = `
-        <div class="group text-center">
-            <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden mb-2 cursor-pointer rounded-lg" onclick="openProductModal(${prod.id})">
-                <img src="${prod.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="${prod.name}">
-                ${badge}
-                <button class="hidden md:block absolute bottom-0 left-0 w-full bg-black/80 text-white py-3 text-[10px] uppercase tracking-widest translate-y-full group-hover:translate-y-0 transition duration-300">
-                    Ver detalles
-                </button>
-            </div>
-            <h4 class="text-[10px] md:text-sm font-medium tracking-tight mt-1 leading-tight h-8 flex items-center justify-center cursor-pointer" onclick="openProductModal(${prod.id})">
-                ${prod.name}
-            </h4>
-            <p class="text-stone-500 text-[9px] md:text-sm mt-1 font-light">$${priceToShow.toLocaleString('es-CO')}</p>
-        </div>
-    `;
-    productGrid.insertAdjacentHTML('beforeend', html);
-});
+function openPolicyModal(type) {
+    modalTitle.innerText = policiesData[type].title;
+    modalContent.innerHTML = policiesData[type].html;
+    
+    policyModal.classList.remove('hidden');
+    setTimeout(() => {
+        policyModal.classList.add('opacity-100');
+        policyModal.querySelector('div').classList.remove('scale-95');
+        policyModal.querySelector('div').classList.add('scale-100');
+    }, 10);
+    
+    document.body.style.overflow = "hidden";
 }
 
-// --- FILTROS ---
+function closePolicyModal() {
+    policyModal.classList.remove('opacity-100');
+    policyModal.querySelector('div').classList.remove('scale-100');
+    policyModal.querySelector('div').classList.add('scale-95');
+    
+    setTimeout(() => {
+        policyModal.classList.add('hidden');
+    }, 300);
+    
+    document.body.style.overflow = "auto";
+}
 
-function aplicarFiltros() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-    const checkedBrands = Array.from(document.querySelectorAll('input[data-filter="brand"]:checked')).map(cb => cb.value);
-    const checkedScents = Array.from(document.querySelectorAll('input[data-filter="scent"]:checked')).map(cb => cb.value);
-    const checkedAvailability = Array.from(document.querySelectorAll('input[data-filter="availability"]:checked')).map(cb => cb.value);
-    const maxPrice = parseInt(document.getElementById('price-range').value);
-
-    let filtrados = productosDB.filter(prod => {
-        const prodPrice = prod.presentations[0].price;
-        if (searchTerm && !(prod.name.toLowerCase().includes(searchTerm) || prod.brand.toLowerCase().includes(searchTerm))) return false;
-        if (prodPrice > maxPrice) return false;
-        if (checkedBrands.length > 0 && !checkedBrands.includes(prod.brand)) return false;
-        if (checkedScents.length > 0 && !checkedScents.includes(prod.scent === 'Gourmand' ? 'Dulce' : prod.scent)) return false;
-        if (checkedAvailability.length > 0) {
-            if (checkedAvailability.includes('in-stock') && !prod.inStock) return false;
-            if (checkedAvailability.includes('out-of-stock') && prod.inStock) return false;
+if (policyModal) {
+    policyModal.addEventListener('click', function(e) {
+        if (e.target === policyModal) {
+            closePolicyModal();
         }
-        return true;
     });
-
-    const sortBy = document.getElementById('sort-select').value;
-    if (sortBy === 'az') filtrados.sort((a, b) => a.name.localeCompare(b.name));
-    if (sortBy === 'za') filtrados.sort((a, b) => b.name.localeCompare(a.name));
-    if (sortBy === 'low-high') filtrados.sort((a, b) => a.presentations[0].price - b.presentations[0].price);
-    if (sortBy === 'high-low') filtrados.sort((a, b) => b.presentations[0].price - a.presentations[0].price);
-
-    renderProductos(filtrados);
 }
 
-// --- INICIALIZACIÓN ---
+// ─── LÓGICA DE LA BARRA DE ANUNCIOS ───────────────────────────
 
-document.querySelectorAll('.filter-checkbox').forEach(cb => cb.addEventListener('change', aplicarFiltros));
-document.getElementById('sort-select').addEventListener('change', aplicarFiltros);
-document.getElementById('search-input').addEventListener('input', aplicarFiltros);
-document.getElementById('price-range').addEventListener('input', (e) => {
-    document.getElementById('price-display').innerText = "$ " + parseInt(e.target.value).toLocaleString('es-CO');
-    aplicarFiltros();
-});
-
-  // --- LÓGICA DEL MODAL DE POLÍTICAS ---
-        const policyModal = document.getElementById('policy-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalContent = document.getElementById('modal-content');
-
-        // Datos del modal
-        const policiesData = {
-            envios: {
-                title: "Política de Devoluciones o Cambios",
-                html: "<p>El producto no puede estar abierto, usado ni modificado de su estado original. Debe estar en buen estado, limpio y con las etiquetas originales.</p>"
-            },
-            garantias: {
-                title: "Garantía",
-                html: "<p>En dperfumes garantizamos que todos nuestros productos son 100% originales.</p><p>Trabajamos únicamente con proveedores confiables para asegurar autenticidad, calidad y correcta conservación de cada fragancia.</p><p>Si tu producto presenta algún inconveniente, contáctanos y te ayudaremos a resolverlo de forma rápida y transparente.</p><p class='font-medium text-stone-800 pt-2'>Tu confianza es lo más importante para nosotros.</p>"
-            },
-            contacto: {
-                title: "Contacto",
-                html: "<p>¿Tienes preguntas o necesitas ayuda? Nuestro equipo de atención al cliente está aquí para ti. Puedes contactarnos a través de:</p><ul class='list-disc list-inside'><li><strong>WhatsApp:</strong> <a href='https://wa.me/573007350100' class='text-blue-600 hover:underline'>+57 300 7350100</a></li><li><strong>Instagram:</strong> <a href='https://instagram.com/dperfumes_1' class='text-blue-600 hover:underline'>@dperfumes_1</a></li><li><strong>Tiktok:</strong> <a href='https://tiktok.com/@dperfumes_ibg' class='text-blue-600 hover:underline'>@dperfumes_ibg</a></li></ul>"
-            }
-
-        };
-
-        function openPolicyModal(type) {
-            // Cargar contenido
-            modalTitle.innerText = policiesData[type].title;
-            modalContent.innerHTML = policiesData[type].html;
-            
-            // Mostrar modal con animación
-            policyModal.classList.remove('hidden');
-            setTimeout(() => {
-                policyModal.classList.add('opacity-100');
-                policyModal.querySelector('div').classList.remove('scale-95');
-                policyModal.querySelector('div').classList.add('scale-100');
-            }, 10);
-            
-            // Prevenir scroll en la página
-            document.body.style.overflow = "hidden";
-        }
-
-        function closePolicyModal() {
-            // Ocultar modal con animación
-            policyModal.classList.remove('opacity-100');
-            policyModal.querySelector('div').classList.remove('scale-100');
-            policyModal.querySelector('div').classList.add('scale-95');
-            
-            setTimeout(() => {
-                policyModal.classList.add('hidden');
-            }, 300);
-            
-            // Restaurar scroll
-            document.body.style.overflow = "auto";
-        }
-
-        // Cerrar el modal si se hace clic por fuera de la caja blanca
-        policyModal.addEventListener('click', function(e) {
-            if (e.target === policyModal) {
-                closePolicyModal();
-            }
-        });
-        // Escucha cada vez que el usuario teclea algo
-        searchInput.addEventListener('input', aplicarFiltros);
-function toggleFilter(containerId, headerElement) {
-    const container = document.getElementById(containerId);
-    const icon = headerElement.querySelector('i');
-
-    if (container.classList.contains('hidden')) {
-        // Mostrar
-        container.classList.remove('hidden');
-        icon.classList.remove('-rotate-180'); // Vuelve a su posición original
-    } else {
-        // Ocultar
-        container.classList.add('hidden');
-        icon.classList.add('-rotate-180'); // Gira el chevron hacia arriba
-    }
-}
-
-// --- LÓGICA DE LA BARRA DE ANUNCIOS ---
 const announcements = [
     "Envíos gratis por compras superiores a $250.000",
     "10% off en primera compra"
@@ -357,22 +416,31 @@ const announcementElement = document.getElementById("announcement-text");
 function rotateAnnouncements() {
     if (!announcementElement) return;
 
-    // 1. Desvanecer (ocultar)
     announcementElement.classList.replace("opacity-100", "opacity-0");
 
     setTimeout(() => {
-        // 2. Cambiar el texto
         currentAnnouncement = (currentAnnouncement + 1) % announcements.length;
         announcementElement.innerText = announcements[currentAnnouncement];
-
-        // 3. Mostrar de nuevo
         announcementElement.classList.replace("opacity-0", "opacity-100");
-    }, 200); // Espera a que termine la animación de salida
+    }, 200);
 }
 
-// Cambiar cada 4 segundos
 setInterval(rotateAnnouncements, 2000);
-        
-// Ejecutar al cargar
-updateCartUI();
-aplicarFiltros();
+
+// ─── EVENT LISTENERS E INICIALIZACIÓN FINAL ───────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Escuchar cambios en los filtros estáticos (los dinámicos se atan en actualizarFiltrosMarcas)
+    document.querySelectorAll('.filter-checkbox').forEach(cb => cb.addEventListener('change', aplicarFiltros));
+    
+    document.getElementById('sort-select')?.addEventListener('change', aplicarFiltros);
+    document.getElementById('search-input')?.addEventListener('input', aplicarFiltros);
+    
+    document.getElementById('price-range')?.addEventListener('input', (e) => {
+        document.getElementById('price-display').innerText = "$ " + parseInt(e.target.value).toLocaleString('es-CO');
+        aplicarFiltros();
+    });
+
+    // Iniciar carga de datos (esto llamará a inicializarCatalogo cuando termine)
+    cargarProductos();
+});

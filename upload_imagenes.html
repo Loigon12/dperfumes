@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dPerfumes · Carga masiva de imágenes</title>
+  <style>
+    :root {
+      --negro: #111; --verde: #16a34a; --rojo: #dc2626;
+      --naranja: #d97706; --gris: #f4f4f4; --borde: #e5e5e5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: var(--gris); color: var(--negro); padding: 2rem 1rem; }
+    .card { background: #fff; border-radius: 10px; padding: 2rem; max-width: 860px; margin: 0 auto; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: .5rem; }
+    p.sub { font-size: .82rem; color: #6b7280; margin-bottom: 1.5rem; }
+    .pasos { background: #f9fafb; border: 1px solid var(--borde); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: .82rem; line-height: 1.8; }
+    .pasos b { color: var(--negro); }
+    label { display: block; font-size: .75rem; font-weight: 600; margin-bottom: .3rem; color: #4b5563; }
+    input[type="file"] { width: 100%; border: 2px dashed var(--borde); border-radius: 8px; padding: 1rem; font-size: .82rem; cursor: pointer; margin-bottom: 1rem; }
+    input[type="file"]:hover { border-color: var(--negro); }
+    .btn-upload { background: var(--negro); color: #fff; border: none; border-radius: 6px; padding: .6rem 1.4rem; font-size: .85rem; font-weight: 600; cursor: pointer; transition: background .2s; }
+    .btn-upload:hover:not(:disabled) { background: #333; }
+    .btn-upload:disabled { opacity: .5; cursor: default; }
+    #progreso-wrap { margin-top: 1.5rem; display: none; }
+    .barra-fondo { background: var(--borde); border-radius: 99px; height: 10px; overflow: hidden; margin-bottom: .5rem; }
+    .barra-fill { height: 10px; background: var(--negro); border-radius: 99px; width: 0%; transition: width .3s; }
+    #pct { font-size: .8rem; font-weight: 600; color: #4b5563; }
+    #log { margin-top: 1rem; max-height: 320px; overflow-y: auto; border: 1px solid var(--borde); border-radius: 6px; font-size: .75rem; font-family: monospace; }
+    .log-row { padding: .3rem .75rem; border-bottom: 1px solid #f3f4f6; display: flex; gap: .5rem; align-items: center; }
+    .log-row:last-child { border-bottom: none; }
+    .tag { font-size: .65rem; font-weight: 700; padding: .1rem .4rem; border-radius: 4px; white-space: nowrap; }
+    .tag.ok  { background: #dcfce7; color: var(--verde); }
+    .tag.err { background: #fee2e2; color: var(--rojo); }
+    .tag.skip{ background: #fef9c3; color: #92400e; }
+    .tag.wait{ background: #e0e7ff; color: #3730a3; }
+    #resumen { margin-top: 1rem; font-size: .82rem; display: none; }
+    .res-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; margin-top: .75rem; }
+    .res-box  { border-radius: 8px; padding: .75rem 1rem; text-align: center; }
+    .res-box .num { font-size: 1.5rem; font-weight: 700; }
+    .res-box.verde { background: #dcfce7; color: var(--verde); }
+    .res-box.rojo  { background: #fee2e2; color: var(--rojo); }
+    .res-box.gris  { background: #f3f4f6; color: #4b5563; }
+    #sql-patch { margin-top: 1.25rem; display: none; }
+    #sql-patch textarea { width: 100%; font-family: monospace; font-size: .72rem; border: 1px solid var(--borde); border-radius: 6px; padding: .75rem; height: 140px; resize: vertical; }
+    .copy-btn { margin-top: .4rem; font-size: .75rem; padding: .3rem .8rem; border: 1px solid var(--borde); border-radius: 4px; background: #fff; cursor: pointer; }
+    .copy-btn:hover { background: var(--gris); }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Carga masiva de imágenes · dPerfumes</h1>
+  <p class="sub">Sube todas las imágenes de tu carpeta <code>images/</code> al bucket <strong>perfumes-images</strong> y actualiza <code>imagen_path</code> en la tabla.</p>
+
+  <div class="pasos">
+    <b>Instrucciones:</b><br>
+    1. Asegúrate de haber ejecutado <code>migracion.sql</code> y <code>seed_faltantes.sql</code> en Supabase.<br>
+    2. Verifica que el bucket <strong>perfumes-images</strong> existe y es público.<br>
+    3. Haz clic en <b>"Seleccionar imágenes"</b> y elige <em>todos</em> los archivos de tu carpeta <code>images/</code>.<br>
+    4. Presiona <b>Subir imágenes</b>. El script sube cada archivo, obtiene su URL pública y actualiza la BD.<br>
+    5. Los archivos que ya existen en el bucket se <b>omiten</b> (no se sobreescriben).
+  </div>
+
+  <label for="f-archivos">Selecciona todos los archivos de la carpeta <code>images/</code></label>
+  <input type="file" id="f-archivos" multiple accept="image/*">
+
+  <button class="btn-upload" id="btn-subir" onclick="iniciarCarga()">⬆Subir imágenes y actualizar BD</button>
+
+  <div id="progreso-wrap">
+    <div class="barra-fondo"><div class="barra-fill" id="barra"></div></div>
+    <span id="pct">0 / 0</span>
+    <div id="log"></div>
+  </div>
+
+  <div id="resumen">
+    <b>Resultado:</b>
+    <div class="res-grid">
+      <div class="res-box verde"><div class="num" id="res-ok">0</div>subidas y vinculadas</div>
+      <div class="res-box rojo" ><div class="num" id="res-err">0</div>errores</div>
+      <div class="res-box gris" ><div class="num" id="res-skip">0</div>sin match en BD</div>
+    </div>
+  </div>
+
+  <div id="sql-patch">
+    <b style="font-size:.82rem">Perfumes sin match automático — actualiza manualmente con este SQL:</b>
+    <textarea id="sql-texto" readonly></textarea>
+    <button class="copy-btn" onclick="copiarSQL()">Copiar SQL</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ─── CONFIGURACIÓN ─────────────────────────────────────────────
+const SUPABASE_URL  = 'https://aabdbymmnqbnnxppqzki.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhYmRieW1tbnFibm54cHBxemtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MjcxNjgsImV4cCI6MjA5MjUwMzE2OH0.CUSZHE6A1kCjQ3soKzuAznwxUjzaGx55KNrZb0VSDzI';
+const BUCKET        = 'perfumes-images';
+
+// ─── MAPA EXACTO: nombre_de_archivo → nombre del perfume en BD
+// Clave = nombre del archivo SIN extensión (minúsculas para comparar)
+// Valor = name exacto en la tabla perfumes
+const MAPA_IMAGENES = {
+  '9amdive':                                    '9 AM Dive',
+  '9ampourfemme':                               '9 PM Pour Femme',
+  '9pm':                                        '9 PM',
+  '9pmelixir':                                  '9 PM Elixir',
+  '9pmnightout':                                '9 PM Night out',
+  '9pm-rebel':                                  '9 PM Rebel',
+  'amberoudaquiadubai':                         'Amber Oud Aqua Dubai',
+  'amberouddubainight':                         'Amber Oud Dubai Night',
+  'al-haramain-amber-oud-gold-edition-60-ml':   'Amber Oud Gold Edition',
+  'alharamainamberoudubyedition':               'Amber Oud Ruby',
+  'art-of-nature-ii-scaled_1200x1200':          'Art of Nature II',
+  'lattafa-art-of-universe':                    'Art of Universe',
+  'lattafaasad':                                'Asad',
+  'asad_bourbon_lattafa':                       'Asad Bourbon',
+  'assadelixir':                                'Asad Elixir',
+  'atlaslataffa':                               'Atlas',
+  'bharara-niche-femme-gde':                    'Bharara Femme',
+  'bharara-king':                               'Bharara King',
+  'bharara king gold':                          'Bharara King Gold',
+  'perfume-bharara-niche-100ml':                'Bharara Niche',
+  'bharara onyx':                               'Bharara Onyx',
+  'fragancia-premium-bharara-rose-edp-100ml':   'Bharara Rose',
+  'armaf-fragancias-armaf-club-de-nuit-iconic': 'Club de Nuit Iconic',
+  'perfume-armaf-club-de-nuit-intense-man-hombre-locion-105ml': 'Club de Nuit Intense Man',
+  'clubdenuitprecieux':                         'Club de Nuit Precieux I',
+  'clubdenuitsillage':                          'Club de Nuit Sillage',
+  'clubdenuituntold':                           'Club de Nuit Untold',
+  'clubdenuiturbanelixir-convertido-de-avif':   'Club de Nuit Urban Man Elixir',
+  'armafclubdenuuitmujer':                      'Club de Nuit Woman',
+  'eclaire-lattafa-mujer-100-ml-edp':           'Eclaire',
+  'emeer':                                      'Emeer',
+  'fakharblack':                                'Fakhar Black',
+  'fakhargold':                                 'Fakhar Gold',
+  'fakharplatin':                               'Fakhar Platin',
+  'fakharrose':                                 'Fakhar Rose',
+  'hawas-for-him-rasasi-convertido-de-png':     'Hawas For Him',
+  'hawasfire':                                  'Hawas Fire',
+  'hawasice':                                   'Hawas Ice',
+  'perfume-hawas-kobra-for-him-rasasi-eau-de-parfum-100ml-hombre-7074933_grande': 'Hawas Kobra',
+  'perfume_hawas_malibu_rasasi_hombre':         'Hawas Malibu',
+  'hawas-rasasi-black':                         'Hawas Black',
+  'hawaselixir':                                'Hawas Elixir',
+  'hawas-tropical-de-rasasi-100-ml-edp-hombre': 'Hawas Tropical',
+  'hawasatlantis':                              'Hawas Atlantis',
+  'hawaspink':                                  'Hawas Pink',
+  'haya':                                       'Haya',
+  'lattafa-her-confession-edp-100ml':           'Her Confession',
+  'hisconfession':                              'His Confession',
+  'honoryglory':                                'Honor & Glory',
+  'armaf-island-bliss':                         'Island Bliss',
+  'khamrah':                                    'Khamrah',
+  'khamrahdukhan':                              'Khamrah Dukhan',
+  'lattafakhamrahqawha':                        'Khamrah Qahwa',
+  'the-kingdom-lattafa-100-ml-edp-hombre':      'The Kingdom Man',
+  'perfume-musamam-white-intense-lattafa-dama-100-ml-edp': 'Musamam White Intense',
+  'nitroelixir':                                'Nitro Elixir',
+  'perfume_nitro_intense_dumont_hombre':        'Nitro Intense',
+  'nitro-red':                                  'Nitro Red',
+  'redintensely-convertido-de-jpg':             'Nitro Red Intensely',
+  'nitro_white_dumont':                         'Nitro White',
+  'armaf-odyssey-_aqua-100ml':                  'Odyssey Aqua',
+  'perfume-armaf-odyssey-artisto-edp-hombre-100ml-2': 'Odyssey Artisto',
+  'odyssey-bahamas':                            'Odyssey Bahamas',
+  'candee-convertido-de-avif':                  'Odyssey Candee',
+  'gomango':                                    'Odyssey Go Mango',
+  'armafhomme':                                 'Odyssey Homme',
+  'armaf-odyssey-homme-white':                  'Odyssey Homme White',
+  'armaf-odyssey-mandarin-sky':                 'Odyssey Mandarin Sky',
+  'odyssey-mandarin-sky-elixir':                'Odyssey Mandarin Sky Elix',
+  'armaf-odyssey-marshmallow':                  'Odyssey Marshmallow',
+  'odysseymega-convertido-de-jpg':              'Odyssey Mega',
+  'odyssey-spectra':                            'Odyssey Spectra',
+  'orienticaambernoir':                         'Orientica Amber Noir',
+  'orienticaamberouge':                         'Orientica Amber Rouge',
+  'azure-fantancy-orientica':                   'Orientica Azure Fantasy',
+  'perfume-unisex-orientica-oud-safron-de-al-haramain-100-ml-edp': 'Orientica Oud Saffron',
+  'orienticaroyalamber':                        'Orientica Royal Amber',
+  'royalbleu':                                  'Orientica Royal Bleu',
+  'orienticavelvegold':                         'Orientica Velvet Gold',
+  'rayhaancorium-convertido-de-jpg':            'Rayhaan Corium',
+  'crimson':                                    'Rayhaan Crimson',
+  'rayhaan-elixir-perfume-bottle-beside-box-against-white-background': 'Rayhaan Elixir',
+  'rayhaan_italia':                             'Rayhaan Italia',
+  'rayhanlion':                                 'Rayhaan Lion',
+  'rayhaan_obsidian':                           'Rayhaan Obsidian',
+  'rayhaantiger':                               'Rayhaan Tiger',
+  'pacificaura':                                'Rayhaan Pacific Aura',
+  'rayhaan-tropical-vibe-100':                  'Rayhaan Tropical Vibe',
+  'rome-pour-femme':                            'Rome Pour Femme',
+  'rome-pour-hommee':                           'Rome Pour Homme',
+  'stallion53':                                 'Stallion 53',
+  'sublime':                                    'Sublime',
+  'supremacycollector':                         'Supremacy Collector\'s Edition',
+  'afnan-supremacy-600x600':                    'Supremacy Not Only Intense',
+  'teriaq':                                     'Teriaq',
+  'teriaq-intense-de-lattafa-100-ml-edp':       'Teriaq Intense',
+  'afnan-turathi-blue-2':                       'Turathi Blue',
+  'afnan_turathi_electric':                     'Turathi Electric',
+  'lattafa-pride-vintage-radio-2':              'Vintage Radio',
+  'yara':                                       'Yara',
+  'lattafa-yara-candy-100ml-hlo-ltaf-yara-4219771': 'Yara Candy',
+  'yaraelixir':                                 'Yara Elixir',
+  'yaramoi':                                    'Yara Moi',
+  'yaratousr':                                  'Yara Tous',
+};
+
+// ─── INIT SUPABASE ─────────────────────────────────────────────
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ─── ESTADO ────────────────────────────────────────────────────
+let cStats = { ok: 0, err: 0, skip: 0 };
+let sqlPatchLines = [];
+
+// ─── UTILIDADES ────────────────────────────────────────────────
+function sinExtension(nombre) {
+  return nombre.replace(/\.[^/.]+$/, '').toLowerCase().trim();
+}
+
+function agregarLog(nombre, tipo, msg) {
+  const log  = document.getElementById('log');
+  const fila = document.createElement('div');
+  fila.className = 'log-row';
+  fila.innerHTML = `<span class="tag ${tipo}">${tipo.toUpperCase()}</span><span>${nombre}</span><span style="color:#9ca3af;margin-left:auto;font-size:.7rem">${msg}</span>`;
+  log.appendChild(fila);
+  log.scrollTop = log.scrollHeight;
+}
+
+function actualizarBarra(done, total) {
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('barra').style.width = pct + '%';
+  document.getElementById('pct').textContent   = `${done} / ${total}`;
+}
+
+// ─── CARGA PRINCIPAL ───────────────────────────────────────────
+async function iniciarCarga() {
+  const archivos = Array.from(document.getElementById('f-archivos').files);
+  if (!archivos.length) {
+    alert('Selecciona primero los archivos de tu carpeta images/');
+    return;
+  }
+
+  // Verificar sesión
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    alert('Debes iniciar sesión en el panel admin primero.\n(Abre admin.html, inicia sesión y luego vuelve aquí)');
+    return;
+  }
+
+  document.getElementById('btn-subir').disabled = true;
+  document.getElementById('progreso-wrap').style.display = 'block';
+  document.getElementById('resumen').style.display       = 'none';
+  document.getElementById('sql-patch').style.display     = 'none';
+  document.getElementById('log').innerHTML = '';
+  cStats = { ok: 0, err: 0, skip: 0 };
+  sqlPatchLines = [];
+
+  // Obtener todos los perfumes de la BD de una sola vez
+  const { data: perfumesBD, error: errBD } = await sb
+    .from('perfumes').select('id, name, imagen_path');
+
+  if (errBD) {
+    alert('Error al consultar la BD: ' + errBD.message);
+    document.getElementById('btn-subir').disabled = false;
+    return;
+  }
+
+  // Índice BD: nombre_minúsculas → { id, imagen_path }
+  const indiceBD = {};
+  perfumesBD.forEach(p => {
+    indiceBD[p.name.toLowerCase().trim()] = p;
+  });
+
+  const total = archivos.length;
+  let done = 0;
+
+  for (const archivo of archivos) {
+    done++;
+    actualizarBarra(done, total);
+    const keyArchivo = sinExtension(archivo.name);
+
+    // Buscar en el mapa
+    const nombreBD = MAPA_IMAGENES[keyArchivo] ?? MAPA_IMAGENES[keyArchivo.toLowerCase()];
+    if (!nombreBD) {
+      // Intentar match directo por nombre de archivo
+      const matchDirecto = perfumesBD.find(p =>
+        sinExtension(archivo.name).includes(p.name.toLowerCase().replace(/[^a-z0-9]/g,''))
+      );
+      if (matchDirecto) {
+        await subirYActualizar(archivo, matchDirecto, indiceBD);
+      } else {
+        cStats.skip++;
+        sqlPatchLines.push(`-- Sin match: ${archivo.name}`);
+        agregarLog(archivo.name, 'skip', 'no encontrado en el mapa');
+      }
+      continue;
+    }
+
+    const entradaBD = indiceBD[nombreBD.toLowerCase().trim()];
+    if (!entradaBD) {
+      cStats.skip++;
+      sqlPatchLines.push(`-- Perfume no encontrado en BD: ${nombreBD}`);
+      agregarLog(archivo.name, 'skip', `"${nombreBD}" no está en la BD`);
+      continue;
+    }
+
+    await subirYActualizar(archivo, entradaBD, indiceBD);
+  }
+
+  // Mostrar resumen
+  document.getElementById('res-ok').textContent   = cStats.ok;
+  document.getElementById('res-err').textContent  = cStats.err;
+  document.getElementById('res-skip').textContent = cStats.skip;
+  document.getElementById('resumen').style.display = 'block';
+
+  if (sqlPatchLines.length) {
+    const sqlTexto = sqlPatchLines.join('\n');
+    document.getElementById('sql-texto').value = sqlTexto;
+    document.getElementById('sql-patch').style.display = 'block';
+  }
+
+  document.getElementById('btn-subir').disabled = false;
+  agregarLog('Proceso finalizado', 'ok', `${cStats.ok} OK · ${cStats.err} errores · ${cStats.skip} sin match`);
+}
+
+async function subirYActualizar(archivo, entradaBD, indiceBD) {
+  // Si ya tiene imagen_path, no sobreescribir
+  if (entradaBD.imagen_path) {
+    agregarLog(archivo.name, 'skip', `ya tiene imagen: ${entradaBD.imagen_path}`);
+    cStats.skip++;
+    return;
+  }
+
+  const ext  = archivo.name.split('.').pop().toLowerCase();
+  const path = `perfumes/${Date.now()}_${archivo.name.replace(/\s+/g,'-')}`;
+
+  // Subir al bucket
+  const { error: errSubida } = await sb.storage
+    .from(BUCKET)
+    .upload(path, archivo, { upsert: false });
+
+  if (errSubida) {
+    if (errSubida.message?.includes('already exists')) {
+      // Intentar recuperar la URL y solo actualizar BD
+      const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
+      await actualizarBD(entradaBD.id, path, archivo.name);
+    } else {
+      cStats.err++;
+      agregarLog(archivo.name, 'err', errSubida.message);
+      return;
+    }
+  }
+
+  // Actualizar imagen_path en la tabla
+  await actualizarBD(entradaBD.id, path, archivo.name);
+}
+
+async function actualizarBD(id, path, nombreArchivo) {
+  const { error: errUpdate } = await sb
+    .from('perfumes')
+    .update({ imagen_path: path })
+    .eq('id', id);
+
+  if (errUpdate) {
+    cStats.err++;
+    agregarLog(nombreArchivo, 'err', 'subida OK pero fallo al actualizar BD: ' + errUpdate.message);
+    sqlPatchLines.push(`UPDATE public.perfumes SET imagen_path = '${path}' WHERE id = ${id}; -- ${nombreArchivo}`);
+  } else {
+    cStats.ok++;
+    agregarLog(nombreArchivo, 'ok', `→ perfumes/${path.split('/').pop()}`);
+  }
+}
+
+function copiarSQL() {
+  const ta = document.getElementById('sql-texto');
+  ta.select();
+  document.execCommand('copy');
+  event.target.textContent = 'Copiado';
+  setTimeout(() => event.target.textContent = 'Copiar SQL', 2000);
+}
+</script>
+</body>
+</html>

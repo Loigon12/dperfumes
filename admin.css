@@ -1,0 +1,418 @@
+/* ============================================================
+   css/admin.css  —  dPerfumes Panel Admin
+   Complementa Tailwind; clases propias para componentes del panel.
+============================================================ */
+
+/* ─── Variables ─────────────────────────────────────────────── */
+:root {
+  --negro:    #111111;
+  --gris-100: #f4f4f4;
+  --gris-200: #e5e5e5;
+  --gris-400: #9ca3af;
+  --gris-600: #4b5563;
+  --verde:    #16a34a;
+  --rojo:     #dc2626;
+  --naranja:  #d97706;
+  --radio:    6px;
+  --sombra:   0 2px 12px rgba(0,0,0,.08);
+}
+
+/* ─── Base ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--gris-100); color: var(--negro); }
+
+/* ─── Topbar ─────────────────────────────────────────────────── */
+.topbar {
+  background: var(--negro);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--sombra);
+}
+.topbar h1 { font-size: .9rem; font-weight: 600; letter-spacing: .05em; }
+.btn-logout {
+  font-size: .75rem;
+  padding: .35rem .9rem;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: var(--radio);
+  cursor: pointer;
+  color: #fff;
+  background: transparent;
+  transition: background .2s;
+}
+.btn-logout:hover { background: rgba(255,255,255,.12); }
+
+/* ─── Contenedor principal ───────────────────────────────────── */
+.contenedor {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1.25rem;
+}
+
+/* ─── Tarjeta / Card ─────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 1.25rem 1.5rem;
+}
+
+/* ─── Barra de acciones ──────────────────────────────────────── */
+.barra-acciones {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.barra-acciones input[type="search"] {
+  flex: 1;
+  min-width: 180px;
+  border: 1px solid var(--gris-200);
+  border-radius: var(--radio);
+  padding: .45rem .85rem;
+  font-size: .85rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.barra-acciones input[type="search"]:focus { border-color: var(--negro); }
+
+.btn-nuevo {
+  background: var(--negro);
+  color: #fff;
+  border: none;
+  border-radius: var(--radio);
+  padding: .5rem 1.1rem;
+  font-size: .82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .2s;
+  white-space: nowrap;
+}
+.btn-nuevo:hover { background: #333; }
+
+/* ─── Tabla ───────────────────────────────────────────────────── */
+.tabla-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+thead th {
+  text-align: left;
+  padding: .6rem .75rem;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--gris-400);
+  border-bottom: 1px solid var(--gris-200);
+}
+tbody tr {
+  border-bottom: 1px solid var(--gris-100);
+  transition: background .15s;
+}
+tbody tr:hover { background: var(--gris-100); }
+tbody td { padding: .6rem .75rem; vertical-align: middle; }
+
+.tabla-img {
+  width: 44px; height: 58px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--gris-100);
+}
+
+/* Badges de stock */
+.badge-stock {
+  display: inline-block;
+  font-size: .68rem;
+  padding: .2rem .55rem;
+  border-radius: 99px;
+  font-weight: 600;
+}
+.badge-stock.in  { background: #dcfce7; color: var(--verde); }
+.badge-stock.out { background: #fee2e2; color: var(--rojo);  }
+
+/* Botones de acción dentro de la tabla */
+.btn-accion {
+  font-size: .72rem;
+  padding: .28rem .65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--gris-200);
+  background: transparent;
+  transition: background .15s, border-color .15s;
+}
+.btn-editar:hover  { background: var(--gris-100); }
+.btn-eliminar      { border-color: #fecaca; color: var(--rojo); }
+.btn-eliminar:hover{ background: #fef2f2; }
+
+/* ─── Paginación ─────────────────────────────────────────────── */
+#paginacion {
+  display: flex;
+  gap: .35rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+.pag-btn {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid var(--gris-200);
+  background: #fff;
+  border-radius: 4px;
+  font-size: .8rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.pag-btn:hover:not(:disabled) { background: var(--gris-100); }
+.pag-btn.activa { background: var(--negro); color: #fff; border-color: var(--negro); }
+.pag-btn:disabled { opacity: .4; cursor: default; }
+
+/* ─── Modal crear/editar ─────────────────────────────────────── */
+#modal {
+  display: none;
+  position: fixed; inset: 0;
+  z-index: 100;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem 1rem;
+  overflow-y: auto;
+}
+#modal:not(.hidden) { display: flex; }
+#modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 99;
+}
+.modal-box {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 640px;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  z-index: 101;
+}
+.modal-box h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 1.25rem; }
+
+/* Campos del formulario */
+.campo { margin-bottom: 1rem; }
+.campo label { display: block; font-size: .75rem; font-weight: 600; margin-bottom: .3rem; color: var(--gris-600); }
+.campo input[type="text"],
+.campo input[type="number"],
+.campo input[type="file"],
+.campo select,
+.campo textarea {
+  width: 100%;
+  border: 1px solid var(--gris-200);
+  border-radius: var(--radio);
+  padding: .5rem .75rem;
+  font-size: .85rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+  border-color: var(--negro);
+}
+.campo textarea { resize: vertical; min-height: 64px; }
+
+/* Sección de presentaciones */
+.pres-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .5rem;
+}
+.pres-input {
+  border: 1px solid var(--gris-200);
+  border-radius: 4px;
+  padding: .38rem .6rem;
+  font-size: .82rem;
+  outline: none;
+}
+.pres-input:focus { border-color: var(--negro); }
+.pres-size  { width: 90px; }
+.pres-price { flex: 1; }
+.pres-sep   { font-size: .85rem; color: var(--gris-400); }
+.btn-quitar-pres {
+  background: none; border: none;
+  color: var(--rojo); font-size: .9rem;
+  cursor: pointer; padding: 0 .25rem;
+  line-height: 1;
+}
+.btn-agregar-pres {
+  font-size: .75rem;
+  padding: .3rem .7rem;
+  border: 1px dashed var(--gris-400);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  color: var(--gris-600);
+  transition: border-color .2s;
+  margin-top: .25rem;
+}
+.btn-agregar-pres:hover { border-color: var(--negro); color: var(--negro); }
+
+/* Preview de imagen */
+.img-preview-wrap { display: flex; align-items: flex-start; gap: 1rem; }
+#img-preview {
+  width: 80px; height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--gris-200);
+  background: var(--gris-100);
+}
+
+/* Botones del modal */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gris-100);
+}
+.btn-cancelar {
+  padding: .5rem 1.1rem;
+  border: 1px solid var(--gris-200);
+  border-radius: var(--radio);
+  background: #fff;
+  font-size: .83rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-cancelar:hover { background: var(--gris-100); }
+#btn-guardar {
+  padding: .5rem 1.3rem;
+  background: var(--negro);
+  color: #fff;
+  border: none;
+  border-radius: var(--radio);
+  font-size: .83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+#btn-guardar:hover:not(:disabled) { background: #333; }
+#btn-guardar:disabled { opacity: .6; cursor: default; }
+
+/* ─── Modal de confirmación ──────────────────────────────────── */
+#confirm-modal {
+  display: none;
+  position: fixed; inset: 0;
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.45);
+}
+#confirm-modal:not(.hidden) { display: flex; }
+.confirm-box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+.confirm-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: .5rem; }
+.confirm-box p  { font-size: .85rem; color: var(--gris-600); margin-bottom: 1.5rem; }
+.confirm-btns { display: flex; gap: .75rem; justify-content: center; }
+.btn-confirm-ok {
+  padding: .5rem 1.3rem;
+  background: var(--rojo);
+  color: #fff;
+  border: none;
+  border-radius: var(--radio);
+  font-size: .83rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-confirm-cancel {
+  padding: .5rem 1.1rem;
+  border: 1px solid var(--gris-200);
+  background: #fff;
+  border-radius: var(--radio);
+  font-size: .83rem;
+  cursor: pointer;
+}
+
+/* ─── Login ───────────────────────────────────────────────────── */
+#login-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gris-100);
+}
+#login-section.hidden { display: none !important; }
+.login-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.1);
+  text-align: center;
+}
+.login-card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; }
+.login-card .campo { text-align: left; }
+.btn-login {
+  width: 100%;
+  margin-top: .5rem;
+  padding: .65rem;
+  background: var(--negro);
+  color: #fff;
+  border: none;
+  border-radius: var(--radio);
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-login:hover { background: #333; }
+#login-error { color: var(--rojo); font-size: .78rem; margin-top: .5rem; min-height: 1rem; }
+
+/* ─── Toast ───────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--negro);
+  color: #fff;
+  padding: .65rem 1.4rem;
+  border-radius: 99px;
+  font-size: .82rem;
+  font-weight: 500;
+  z-index: 999;
+  opacity: 0;
+  transition: transform .3s ease, opacity .3s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.ok    { background: #166534; }
+.toast.error { background: var(--rojo); }
+.toast.warn  { background: var(--naranja); }
+
+/* ─── Utilidad hidden (reemplaza Tailwind que no está cargado) ── */
+.hidden { display: none !important; }
+/* El panel usa display:block por defecto cuando visible */
+#panel { display: block; }
+#panel.hidden { display: none !important; }
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .modal-box { padding: 1.25rem 1rem; }
+  .contenedor { padding: 0 .75rem; }
+  .topbar h1 { font-size: .8rem; }
+  thead th:nth-child(3),
+  thead th:nth-child(4),
+  tbody td:nth-child(3),
+  tbody td:nth-child(4) { display: none; }
+}
