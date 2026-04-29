@@ -289,9 +289,12 @@ function renderPresentaciones() {
              oninput="presentaciones[${i}].size = this.value.trim()"
              class="pres-input pres-size">
       <span class="pres-sep">$</span>
-      <input type="number" value="${p.price}" placeholder="Precio COP"
-             oninput="presentaciones[${i}].price = +this.value"
-             class="pres-input pres-price" min="1" step="1000">
+      <input type="text"
+             inputmode="numeric"
+             value="${p.price > 0 ? p.price : ''}"
+             placeholder="Ej: 270000"
+             oninput="actualizarPrecio(${i}, this.value)"
+             class="pres-input pres-price">
       <button type="button" onclick="quitarPresentacion(${i})"
               class="btn-quitar-pres" title="Eliminar presentación">✕</button>
     </div>`).join('');
